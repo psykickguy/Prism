@@ -22,3 +22,38 @@ const connectDB = async () => {
     console.error("MongoDB connection failed:", error);
   }
 };
+
+// app.post("/gemini", async (req, res) => {
+//   const { systemPrompt, userMessage } = req.body;
+
+//   const options = {
+//     method: "POST",
+//     headers: {
+//       "Content-Type": "application/json",
+//       Authorization: `Bearer ${process.env.GEMINI_API_KEY}`,
+//     },
+//     body: JSON.stringify({
+//       model: "provider-6/gemini-2.5-flash",
+//       messages: [
+//         { role: "system", content: systemPrompt },
+//         { role: "user", content: userMessage },
+//       ],
+//     }),
+//   };
+
+//   try {
+//     const response = await fetch(
+//       "https://api.a4f.co/v1/chat/completions",
+//       options
+//     );
+//     const data = await response.json();
+
+//     console.log("ENV Key:", process.env.GEMINI_API_KEY?.slice(0, 8));
+//     console.log("Response:", JSON.stringify(data, null, 2));
+
+//     res.status(200).json(data.choices[0].message.content);
+//   } catch (error) {
+//     console.error("Error:", error);
+//     res.status(500).json({ error: "Internal Server Error" });
+//   }
+// });
