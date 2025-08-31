@@ -29,3 +29,28 @@ const callGemini = async (systemPrompt, userMessage) => {
 };
 
 export default callGemini;
+
+// import "dotenv/config";
+
+// import { GoogleGenAI } from "@google/genai";
+// const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+
+// const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
+
+// const callGemini = async (systemPrompt, userMessage) => {
+//   try {
+//     const response = await ai.models.generateContent({
+//       model: "gemini-2.5-flash",
+//       messages: [
+//         { role: "system", content: systemPrompt },
+//         { role: "user", content: userMessage },
+//       ],
+//     });
+//     const data = await response.json();
+//     return data.choices[0].message.content;
+//   } catch (error) {
+//     console.error("Error:", error);
+//   }
+// };
+
+// export default callGemini;
