@@ -21,7 +21,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const storage = getStorage(app);
 
-const uploadFile = async (fileBuffer, filename, mimetype) => {
+export const uploadFile = async (fileBuffer, filename, mimetype) => {
   const uniqueName = `uploads/${Date.now()}-${filename}`;
   const fileRef = ref(storage, uniqueName);
   await uploadBytes(fileRef, fileBuffer, { contentType: mimetype });
@@ -37,9 +37,7 @@ const uploadFile = async (fileBuffer, filename, mimetype) => {
 //   return getDownloadURL(fileRef);
 // }
 
-const deleteFile = async (path) => {
+export const deleteFile = async (path) => {
   const fileRef = ref(storage, path);
   return deleteObject(fileRef);
 };
-
-export default { deleteFile, uploadFile };

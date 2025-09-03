@@ -1,11 +1,11 @@
 import mongoose from "mongoose";
 
 const DocumentSchema = new mongoose.Schema({
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-    required: true,
-  },
+  //   userId: {
+  //     type: mongoose.Schema.Types.ObjectId,
+  //     ref: "User",
+  //     required: true,
+  //   },
   title: { type: String }, // e.g. "Rental Agreement"
   fileUrl: { type: String, required: true }, // Firebase URL
   fileType: { type: String, default: "pdf" },
@@ -29,6 +29,7 @@ const DocumentSchema = new mongoose.Schema({
 
   createdAt: { type: Date, default: Date.now },
   expiresAt: { type: Date },
+  metadata: { type: Object },
 });
 
 export default mongoose.model("Document", DocumentSchema);

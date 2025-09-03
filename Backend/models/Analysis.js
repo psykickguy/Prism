@@ -7,14 +7,20 @@ const analysisSchema = new mongoose.Schema({
     required: true,
   },
 
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User", // optional but useful for multi-user system
-  },
+  //   userId: {
+  //     type: mongoose.Schema.Types.ObjectId,
+  //     ref: "User", // optional but useful for multi-user system
+  //   },
 
   type: {
     type: String,
-    enum: ["summary", "clause_explanation", "query_response", "highlight_risk"],
+    enum: [
+      "summary",
+      "clause_explanation",
+      "query_response",
+      "highlight_risk",
+      "recommendation",
+    ],
     required: true,
   },
 
