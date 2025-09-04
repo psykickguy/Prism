@@ -8,7 +8,7 @@ const callGemini = async (systemPrompt, userMessage) => {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "provider-6/gemini-2.5-flash",
+      model: "provider-2/gemini-2.5-flash",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userMessage },
@@ -22,7 +22,17 @@ const callGemini = async (systemPrompt, userMessage) => {
       options
     );
     const data = await response.json();
-    return data.choices[0].message.content;
+
+    // Debug log – helps see if the response format changes
+    console.log("Gemini raw response:", JSON.stringify(data, null, 2));
+
+    // Safely extract output
+    const output =
+      data?.choices?.[0]?.message?.content ||
+      data?.candidates?.[0]?.content?.parts?.[0]?.text ||
+      "⚠️ No output returned from Gemini";
+
+    return output;
   } catch (error) {
     console.error("Error:", error);
   }

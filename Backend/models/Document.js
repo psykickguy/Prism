@@ -12,15 +12,15 @@ const DocumentSchema = new mongoose.Schema({
   fileType: { type: String, default: "pdf" },
 
   extractedText: { type: String }, // from pdf-parse / OCR
-  summary: { type: String }, // Gemini simplified version
-  clauses: [
-    {
-      clause: String, // Original clause text
-      simplified: String, // AI explanation
-      riskLevel: { type: String, enum: ["low", "medium", "high"] },
-    },
-  ],
-  hiddenTerms: [String], // optional future feature
+  //   summary: { type: String }, // Gemini simplified version
+  //   clauses: [
+  //     {
+  //       clause: String, // Original clause text
+  //       simplified: String, // AI explanation
+  //       riskLevel: { type: String, enum: ["low", "medium", "high"] },
+  //     },
+  //   ],
+  //   hiddenTerms: [String], // optional future feature
 
   status: {
     type: String,

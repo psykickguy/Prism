@@ -38,9 +38,9 @@ export const uploadDocument = asyncHandler(async (req, res) => {
     filePath: fileData.path, // raw path inside bucket
     fileType: normalizeFileType(file.mimetype),
     extractedText,
-    summary: "", // will be filled after AI processing
-    clauses: [], // optional, filled after AI clause-by-clause analysis
-    hiddenTerms: [], // optional for future
+    // summary: "", // will be filled after AI processing
+    // clauses: [], // optional, filled after AI clause-by-clause analysis
+    // hiddenTerms: [], // optional for future
     status: "uploaded",
     createdAt: new Date(),
     expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // example: auto-delete in 24h

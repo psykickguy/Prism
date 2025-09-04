@@ -20,12 +20,23 @@ const analysisSchema = new mongoose.Schema({
       "query_response",
       "highlight_risk",
       "recommendation",
+      "hidden_terms",
     ],
     required: true,
   },
 
   input: { type: String }, // e.g. clause text or user query
   output: { type: String }, // Gemini response / simplified explanation
+
+  clauses: [
+    {
+      clause: String,
+      simplified: String,
+      riskLevel: { type: String, enum: ["low", "medium", "high"] },
+    },
+  ],
+
+  hiddenTerms: [String],
 
   metadata: {
     type: Object,
