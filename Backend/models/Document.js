@@ -7,7 +7,8 @@ const DocumentSchema = new mongoose.Schema({
   //     required: true,
   //   },
   title: { type: String }, // e.g. "Rental Agreement"
-  fileUrl: { type: String, required: true }, // Firebase URL
+  fileUrl: { type: String, required: true }, // for viewing
+  filePath: { type: String, required: true }, // for deletion
   fileType: { type: String, default: "pdf" },
 
   extractedText: { type: String }, // from pdf-parse / OCR

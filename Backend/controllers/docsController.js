@@ -1,5 +1,5 @@
 import Document from "../models/Document.js";
-import { uploadFile, deleteFile } from "../utils/firebase.js";
+import { uploadFile, deleteFile } from "../utils/supabase.js";
 import extractPdfText from "../utils/pdf.js"; // your pdf-parse utility
 import { asyncHandler } from "../utils/errorHandler.js";
 import { normalizeFileType, isSupportedFileType } from "../utils/fileType.js";
@@ -13,8 +13,8 @@ export const uploadDocument = asyncHandler(async (req, res) => {
     return res.status(400).json({ error: "Unsupported file type" });
   }
 
-  // Upload to Firebase
-  const fileUrl = await uploadFile(
+  // Upload to Supabase
+  const fileData = await uploadFile(
     file.buffer,
     file.originalname,
     file.mimetype
@@ -34,7 +34,8 @@ export const uploadDocument = asyncHandler(async (req, res) => {
 
   const doc = await Document.create({
     title: file.originalname, // or user-provided title
-    fileUrl,
+    fileUrl: fileData.url, // signed/public URL
+    filePath: fileData.path, // raw path inside bucket
     fileType: normalizeFileType(file.mimetype),
     extractedText,
     summary: "", // will be filled after AI processing
@@ -69,7 +70,7 @@ export const deleteDocument = asyncHandler(async (req, res) => {
   if (!doc) return res.status(404).json({ error: "Document not found" });
 
   // Delete from Firebase
-  await deleteFile(doc.fileUrl);
+  await deleteFile(doc.filePath);
 
   // Delete from MongoDB
   await Document.deleteOne({ _id: doc._id });
