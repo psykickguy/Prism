@@ -1,5 +1,15 @@
 import mongoose from "mongoose";
 
+const clauseSchema = new mongoose.Schema({
+  clause: { type: String, required: true }, // exact line from document
+  simplified: { type: String }, // simplified explanation
+  riskLevel: {
+    type: String,
+    enum: ["low", "medium", "high"],
+    default: "low",
+  },
+});
+
 const analysisSchema = new mongoose.Schema({
   documentId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -28,15 +38,22 @@ const analysisSchema = new mongoose.Schema({
   input: { type: String }, // e.g. clause text or user query
   output: { type: String }, // Gemini response / simplified explanation
 
-  clauses: [
+  // --- specific sections ---
+  clauses: [clauseSchema], // used for highlight_risk + clause_explanation
+
+  hiddenTerms: [
     {
-      clause: String,
-      simplified: String,
-      riskLevel: { type: String, enum: ["low", "medium", "high"] },
+      term: { type: String },
+      page: { type: Number }, // optional, helps locate
+      explanation: { type: String },
     },
   ],
 
-  hiddenTerms: [String],
+  recommendations: [
+    {
+      point: { type: String }, // short bullet points
+    },
+  ],
 
   metadata: {
     type: Object,
