@@ -4,6 +4,7 @@ import cors from "cors";
 import mongoose from "mongoose";
 import docsRoutes from "./routes/docs.js";
 import analysisRoutes from "./routes/analysis.js";
+import chatRoutes from "./routes/chat.js";
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -13,6 +14,8 @@ app.use(express.json());
 
 app.use("/docs", docsRoutes);
 app.use("/analyses", analysisRoutes);
+app.use("/chats", chatRoutes);
+app.get("/ping", (req, res) => res.send("pong"));
 
 app.listen(PORT, () => {
   console.log(`Server is running on ${PORT}`);

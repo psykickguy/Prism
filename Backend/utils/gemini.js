@@ -4,15 +4,17 @@ const callGemini = async (systemPrompt, userMessage) => {
   const options = {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${process.env.GEMINI_API_KEY}`,
+      // Authorization: `Bearer ${process.env.GEMINI_API_KEY}`,
+      Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "provider-2/gemini-2.5-flash",
+      // model: "provider-3/gemma-3-4b-it",
+      model: "llama-3.1-8b-instant",
       messages: [
         {
           role: "system",
-          content: `${systemPrompt}\n\n IMPORTANT: Always respond in valid JSON format only. Do not include explanations or extra text.`,
+          content: `${systemPrompt}\n\n IMPORTANT: Do not include explanations or extra text.`,
         },
         { role: "user", content: userMessage },
       ],
@@ -21,19 +23,26 @@ const callGemini = async (systemPrompt, userMessage) => {
 
   try {
     const response = await fetch(
-      "https://api.a4f.co/v1/chat/completions",
+      // "https://api.a4f.co/v1/chat/completions",
+      "https://api.groq.com/openai/v1/chat/completions",
       options
     );
     const data = await response.json();
 
-    // Debug raw response (good for dev only)
-    console.log("Gemini raw response:", JSON.stringify(data, null, 2));
+    // // Debug raw response (good for dev only)
+    // console.log("Gemini raw response:", JSON.stringify(data, null, 2));
 
-    // Extract text output safely
-    const rawOutput =
-      data?.choices?.[0]?.message?.content ||
-      data?.candidates?.[0]?.content?.parts?.[0]?.text ||
-      "";
+    // // Extract text output safely
+    // const rawOutput =
+    //   data?.choices?.[0]?.message?.content ||
+    //   data?.candidates?.[0]?.content?.parts?.[0]?.text ||
+    //   "";
+
+    // Debug raw response
+    console.log("Groq raw response:", JSON.stringify(data, null, 2));
+
+    // Extract assistant text
+    const rawOutput = data?.choices?.[0]?.message?.content || "";
 
     return rawOutput;
   } catch (error) {

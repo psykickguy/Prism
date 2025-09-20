@@ -2,6 +2,16 @@ import Analysis from "../models/Analysis.js";
 import Document from "../models/Document.js";
 import callGemini from "../utils/gemini.js";
 
+// Utility to chunk text by words
+const chunkText = (text, maxWords = 2000) => {
+  const words = text.split(/\s+/);
+  const chunks = [];
+  for (let i = 0; i < words.length; i += maxWords) {
+    chunks.push(words.slice(i, i + maxWords).join(" "));
+  }
+  return chunks;
+};
+
 export const createAnalysis = async (req, res) => {
   try {
     const { documentId, type, input } = req.body;
@@ -23,9 +33,6 @@ export const createAnalysis = async (req, res) => {
     // 2. Decide behavior based on type
     switch (type) {
       case "summary":
-        userMessage = doc.extractedText
-          ? `Summarize the following document:\n\n${doc.extractedText}`
-          : input;
         systemPrompt =
           "You are a legal AI assistant. Provide a clear, concise summary.";
         break;
@@ -37,27 +44,26 @@ export const createAnalysis = async (req, res) => {
 
       case "highlight_risk":
         systemPrompt = `You are a legal risk analyst. 
-        Identify risks in the following clause/document text. 
-        Return ONLY JSON in this format:
-        {
-          "clauses": [
-            { "clause": "original text", "simplified": "plain english", "riskLevel": "low|medium|high" }
-          ]
-        }`;
+Return ONLY JSON in this format:
+{
+  "clauses": [
+    { "clause": "original text", "simplified": "plain english", "riskLevel": "low|medium|high" }
+  ]
+}`;
         break;
 
       case "recommendation":
         systemPrompt = `You are a legal advisor. 
-        Provide 3–5 actionable recommendations in bullet points. 
-        Return ONLY JSON in this format:
-        { "recommendations": [ "point1", "point2", "point3" ] }`;
+Provide 3–5 actionable recommendations in bullet points. 
+Return ONLY JSON in this format:
+{ "recommendations": [ "point1", "point2", "point3" ] }`;
         break;
 
       case "hidden_terms":
         systemPrompt = `You are a legal AI assistant. 
-        Find hidden fees, unfair terms, or buried obligations in the text. 
-        Return ONLY JSON in this format:
-        { "hiddenTerms": [ "term1", "term2" ] }`;
+Find hidden fees, unfair terms, or buried obligations in the text. 
+Return ONLY JSON in this format:
+{ "hiddenTerms": [ "term1", "term2" ] }`;
         break;
 
       case "query_response":
@@ -69,47 +75,73 @@ export const createAnalysis = async (req, res) => {
         return res.status(400).json({ error: "Invalid analysis type" });
     }
 
-    // 3. Call Gemini
-    const rawOutput = await callGemini(systemPrompt, userMessage);
+    // 3. Handle large input by chunking
+    let rawOutput = "";
+    let parsedOutput = {};
 
-    // Try to parse JSON if structured
-    let parsedOutput;
-    try {
-      parsedOutput = JSON.parse(rawOutput);
-    } catch {
-      parsedOutput = null;
+    const textsToProcess =
+      !userMessage || userMessage.length < 5000
+        ? [userMessage]
+        : chunkText(userMessage);
+
+    for (const chunk of textsToProcess) {
+      const chunkOutput = await callGemini(systemPrompt, chunk);
+
+      // append to raw output
+      rawOutput += chunkOutput + "\n";
+
+      // try parsing JSON from chunk
+      try {
+        const parsedChunk = JSON.parse(chunkOutput);
+
+        // merge based on type
+        if (type === "highlight_risk" && parsedChunk.clauses) {
+          parsedOutput.clauses = [
+            ...(parsedOutput.clauses || []),
+            ...parsedChunk.clauses,
+          ];
+        }
+        if (type === "recommendation" && parsedChunk.recommendations) {
+          parsedOutput.recommendations = [
+            ...(parsedOutput.recommendations || []),
+            ...parsedChunk.recommendations,
+          ];
+        }
+        if (type === "hidden_terms" && parsedChunk.hiddenTerms) {
+          parsedOutput.hiddenTerms = [
+            ...(parsedOutput.hiddenTerms || []),
+            ...parsedChunk.hiddenTerms,
+          ];
+        }
+        if (type === "summary" && parsedChunk.summary) {
+          parsedOutput.summary = parsedOutput.summary
+            ? parsedOutput.summary + "\n" + parsedChunk.summary
+            : parsedChunk.summary;
+        }
+      } catch {
+        // ignore parse errors, keep raw output
+      }
     }
 
-    // 4. Handle extra fields depending on type
+    // 4. Prepare analysis data
     const analysisData = {
       documentId,
       type,
-      input: userMessage, // <-- auto-generate input if none
-      output: rawOutput, // always save raw for debugging
+      input: userMessage,
+      output: rawOutput,
       status: "completed",
     };
 
-    if (parsedOutput?.clauses) {
-      analysisData.clauses = parsedOutput.clauses;
-    }
-
-    if (parsedOutput?.recommendations) {
-      // Normalize if it's an array of strings
+    if (parsedOutput?.clauses) analysisData.clauses = parsedOutput.clauses;
+    if (parsedOutput?.recommendations)
       analysisData.recommendations = parsedOutput.recommendations.map((r) =>
         typeof r === "string" ? { point: r } : r
       );
-    }
-
-    if (parsedOutput?.hiddenTerms) {
-      // Normalize if it's just strings
+    if (parsedOutput?.hiddenTerms)
       analysisData.hiddenTerms = parsedOutput.hiddenTerms.map((t) =>
         typeof t === "string" ? { term: t } : t
       );
-    }
-
-    // if (parsedOutput?.summary) {
-    //   analysisData.summary = parsedOutput.summary;
-    // }
+    if (parsedOutput?.summary) analysisData.summary = parsedOutput.summary;
 
     // 5. Save and return
     const analysis = new Analysis(analysisData);
