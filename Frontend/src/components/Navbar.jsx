@@ -43,6 +43,7 @@ const Navbar = () => {
       buttonBgColor="#111"
       buttonTextColor="#fff"
       ease="power3.out"
+      // className="top-1"
     />
   );
 };
