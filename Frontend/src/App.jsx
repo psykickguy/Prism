@@ -11,9 +11,11 @@ function App() {
       <Router>
         <Background />
         <Navbar />
-        <Routes>
-          <Route path="/" element={<Landing />} />
-        </Routes>
+        <main className="relative">
+          <Routes>
+            <Route path="/" element={<Landing />} />
+          </Routes>
+        </main>
       </Router>
     </>
   );

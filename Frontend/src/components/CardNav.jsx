@@ -8,6 +8,11 @@ import {
   SignInButton,
   UserButton,
 } from "@clerk/clerk-react";
+import ButtonWrapper from "./ButtonWrapper";
+// import { RippleButton } from "@/components/magicui/ripple-button";
+import GlareHover from "./GlareHover";
+import FadeContent from "./FadeContent";
+import { ThemeTogglerButton } from "./animate-ui/components/buttons/theme-toggler";
 
 const CardNav = ({
   logo,
@@ -180,40 +185,60 @@ const CardNav = ({
             <img src={logo} alt={logoAlt} className="logo h-[28px]" />
           </div>
 
-          <SignedOut>
-            <SignInButton mode="modal">
-              <button
-                type="button"
-                className="card-nav-cta-button hidden md:inline-flex items-center justify-center border-0 rounded-[calc(0.75rem-0.2rem)] px-4 h-full font-medium cursor-pointer transition-colors duration-300"
+          {/* <div className="flex gap-1">
+            <ThemeTogglerButton /> */}
+          <FadeContent
+            blur={true}
+            duration={1500}
+            easing="ease-out"
+            initialOpacity={0}
+          >
+            <SignedOut>
+              <SignInButton mode="modal">
+                <button
+                  type="button"
+                  // className="card-nav-cta-button hidden md:inline-flex items-center justify-center border-0 rounded-[calc(0.75rem-0.2rem)] px-4 h-full font-medium cursor-pointer transition-colors duration-300"
+                  style={{
+                    //   backgroundColor: buttonBgColor,
+                    color: buttonTextColor,
+                  }}
+                >
+                  <GlareHover
+                    glareColor="#ffffff"
+                    glareOpacity={0.3}
+                    glareAngle={-30}
+                    glareSize={300}
+                    transitionDuration={800}
+                    playOnce={false}
+                  >
+                    Sign In
+                  </GlareHover>
+                </button>
+                {/* <ButtonWrapper /> */}
+              </SignInButton>
+            </SignedOut>
+            <SignedIn>
+              <div
+                className="h-full items-center justify-center md:inline-flex "
                 style={{
-                  backgroundColor: buttonBgColor,
-                  color: buttonTextColor,
+                  width: "40px",
+                  height: "40px",
                 }}
               >
-                Sign In
-              </button>
-            </SignInButton>
-          </SignedOut>
-          <SignedIn>
-            <div
-              className="h-full items-center justify-center md:inline-flex "
-              style={{
-                width: "40px",
-                height: "40px",
-              }}
-            >
-              <UserButton
-                appearance={{
-                  elements: {
-                    userButtonAvatarBox: {
-                      width: "100%",
-                      height: "100%",
+                <UserButton
+                  appearance={{
+                    elements: {
+                      userButtonAvatarBox: {
+                        width: "100%",
+                        height: "100%",
+                      },
                     },
-                  },
-                }}
-              />
-            </div>
-          </SignedIn>
+                  }}
+                />
+              </div>
+            </SignedIn>
+          </FadeContent>
+          {/* </div> */}
         </div>
 
         <div
@@ -224,34 +249,69 @@ const CardNav = ({
           } md:flex-row md:items-end md:gap-[12px]`}
           aria-hidden={!isExpanded}
         >
-          {(items || []).slice(0, 3).map((item, idx) => (
-            <div
-              key={`${item.label}-${idx}`}
-              className="nav-card select-none relative flex flex-col gap-2 p-[12px_16px] rounded-[calc(0.75rem-0.2rem)] min-w-0 flex-[1_1_auto] h-auto min-h-[60px] md:h-full md:min-h-0 md:flex-[1_1_0%]"
-              ref={setCardRef(idx)}
-              style={{ backgroundColor: item.bgColor, color: item.textColor }}
-            >
-              <div className="nav-card-label font-normal tracking-[-0.5px] text-[18px] md:text-[22px]">
-                {item.label}
+          {(items || []).slice(0, 3).map((item, idx) => {
+            const cardContent = (
+              <div
+                key={`${item.label}-${idx}`}
+                className="nav-card select-none relative flex flex-col gap-2 p-[12px_16px] rounded-[calc(0.75rem-0.2rem)] min-w-0 flex-[1_1_auto] h-auto min-h-[60px] md:h-full md:min-h-0 md:flex-[1_1_0%] overflow-hidden" // Added overflow-hidden
+                ref={setCardRef(idx)}
+                style={{ backgroundColor: item.bgColor, color: item.textColor }}
+              >
+                {/* The label, now relative to position text above the image */}
+                <div className="nav-card-label font-normal tracking-[-0.5px] text-[18px] md:text-[22px] relative z-10">
+                  {item.label}
+                </div>
+
+                {/* === CONDITIONAL RENDERING LOGIC START === */}
+                {item.imageSrc ? (
+                  // If there's an image, render it as a styled background div
+                  <div
+                    className="absolute inset-0 z-0 opacity-50"
+                    style={{
+                      backgroundImage: `url(${item.imageSrc})`,
+                      backgroundSize: "65%", // Or "contain"
+                      backgroundPosition: "140% 100%", // Shows bottom-right 3/4
+                      backgroundRepeat: "no-repeat",
+                    }}
+                  />
+                ) : (
+                  // Otherwise, render the links as before
+                  <div className="nav-card-links mt-auto flex flex-col gap-[2px] relative z-10">
+                    {item.links?.map((lnk, i) => (
+                      <a
+                        key={`${lnk.label}-${i}`}
+                        className="nav-card-link inline-flex items-center gap-[6px] no-underline cursor-pointer transition-opacity duration-300 hover:opacity-75 text-[15px] md:text-[16px]"
+                        href={lnk.href}
+                        aria-label={lnk.ariaLabel}
+                      >
+                        <GoArrowUpRight
+                          className="nav-card-link-icon shrink-0"
+                          aria-hidden="true"
+                        />
+                        {lnk.label}
+                      </a>
+                    ))}
+                  </div>
+                )}
+                {/* === CONDITIONAL RENDERING LOGIC END === */}
               </div>
-              <div className="nav-card-links mt-auto flex flex-col gap-[2px]">
-                {item.links?.map((lnk, i) => (
-                  <a
-                    key={`${lnk.label}-${i}`}
-                    className="nav-card-link inline-flex items-center gap-[6px] no-underline cursor-pointer transition-opacity duration-300 hover:opacity-75 text-[15px] md:text-[16px]"
-                    href={lnk.href}
-                    aria-label={lnk.ariaLabel}
-                  >
-                    <GoArrowUpRight
-                      className="nav-card-link-icon shrink-0"
-                      aria-hidden="true"
-                    />
-                    {lnk.label}
-                  </a>
-                ))}
-              </div>
-            </div>
-          ))}
+            );
+
+            // If the item has an href, wrap the entire card in a link
+            if (item.href) {
+              return (
+                <a
+                  href={item.href}
+                  key={`${item.label}-link-${idx}`}
+                  className="contents"
+                >
+                  {cardContent}
+                </a>
+              );
+            }
+
+            return cardContent;
+          })}
         </div>
       </nav>
     </div>

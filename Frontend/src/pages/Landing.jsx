@@ -1,45 +1,62 @@
 import { useState, useEffect } from "react";
 import BlurText from "../components/BlurText";
+import { InteractiveHoverButton } from "../components/ui/interactive-hover-button";
+import { GlowEffectButton } from "@/components/GlowEffectButton";
+import FadeContent from "@/components/FadeContent";
 
 export default function Landing() {
   const [showSecondLine, setShowSecondLine] = useState(false);
+  const [showButtons, setShowButtons] = useState(false);
 
   useEffect(() => {
-    // Start second line animation after 2 seconds (2000ms)
-    const timer = setTimeout(() => setShowSecondLine(true), 2000);
-    return () => clearTimeout(timer); // cleanup
+    const textTimer = setTimeout(() => setShowSecondLine(true), 1000);
+    const buttonTimer = setTimeout(() => setShowButtons(true), 2500);
+    return () => {
+      clearTimeout(textTimer);
+      clearTimeout(buttonTimer);
+    };
   }, []);
-
-  const handleFirstLineComplete = () => {
-    console.log("First line animation completed!");
-  };
-
-  const handleSecondLineComplete = () => {
-    console.log("Second line animation completed!");
-  };
 
   return (
     <>
-      <div
-        className="absolute left-1/2 top-1/2 flex flex-col items-center justify-center text-center px-4 sm:px-0"
-        style={{ transform: "translate(-50%, -50%)", color: "white" }}
-      >
-        <BlurText
-          text="AI for Legal Clarity and Confidence"
-          delay={100}
-          animateBy="words"
-          direction="below"
-          onAnimationComplete={handleFirstLineComplete}
-          className="text-5xl mb-8 font-inter font-semibold text-center mt-4 leading-relaxed"
-        />
-        <BlurText
-          text="Your personal AI legal assistant, anytime, anywhere"
-          delay={100}
-          animateBy="words"
-          direction="below"
-          onAnimationComplete={handleSecondLineComplete}
-          className="text-2xl mb-8 font-lexend font-light text-center leading-snug"
-        />
+      <div className="relative w-full min-h-screen flex items-center justify-center text-white">
+        {/* Add a top margin to this inner container */}
+        <div className="mt-24 flex flex-col items-center gap-8 px-4 text-center">
+          {/* Main Heading */}
+          <BlurText
+            text="AI for Legal Clarity and Confidence"
+            // ...props
+            className="text-4xl font-inter font-semibold leading-relaxed md:text-5xl"
+          />
+
+          {/* Subheading Container with Placeholder */}
+          <div className="h-8">
+            {showSecondLine && (
+              <BlurText
+                text="Your personal AI legal assistant, anytime, anywhere"
+                // ...props
+                className="text-xl font-lexend font-light leading-snug md:text-2xl"
+              />
+            )}
+          </div>
+
+          {/* Buttons Container with Placeholder */}
+          <div className="h-12">
+            {showButtons && (
+              <FadeContent
+                blur={true}
+                duration={1500}
+                easing="ease-out"
+                initialOpacity={0}
+              >
+                <div className="flex items-center justify-center gap-5">
+                  <InteractiveHoverButton>Get Started</InteractiveHoverButton>
+                  <GlowEffectButton />
+                </div>
+              </FadeContent>
+            )}
+          </div>
+        </div>
       </div>
     </>
   );
