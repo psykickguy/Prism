@@ -15,6 +15,7 @@ const Navbar = () => {
       //     { label: "Careers", ariaLabel: "About Careers" },
       //   ],
       imageSrc: upload,
+      href: "/import",
     },
     {
       label: "Clarify",

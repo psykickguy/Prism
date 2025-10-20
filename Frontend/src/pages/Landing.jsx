@@ -4,6 +4,7 @@ import { InteractiveHoverButton } from "../components/ui/interactive-hover-butto
 import { GlowEffectButton } from "@/components/GlowEffectButton";
 import FadeContent from "@/components/FadeContent";
 import AiButton from "@/components/animata/button/ai-button.jsx";
+import ChatBot from "react-chatbotify";
 
 export default function Landing() {
   const [showSecondLine, setShowSecondLine] = useState(false);
@@ -54,6 +55,7 @@ export default function Landing() {
                   <InteractiveHoverButton>Get Started</InteractiveHoverButton>
                   {/* <GlowEffectButton /> */}
                   <AiButton />
+                  {/* <ChatBot /> */}
                 </div>
               </FadeContent>
             )}
