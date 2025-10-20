@@ -3,6 +3,7 @@ import BlurText from "../components/BlurText";
 import { InteractiveHoverButton } from "../components/ui/interactive-hover-button";
 import { GlowEffectButton } from "@/components/GlowEffectButton";
 import FadeContent from "@/components/FadeContent";
+import AiButton from "@/components/animata/button/ai-button.jsx";
 
 export default function Landing() {
   const [showSecondLine, setShowSecondLine] = useState(false);
@@ -51,7 +52,8 @@ export default function Landing() {
               >
                 <div className="flex items-center justify-center gap-5">
                   <InteractiveHoverButton>Get Started</InteractiveHoverButton>
-                  <GlowEffectButton />
+                  {/* <GlowEffectButton /> */}
+                  <AiButton />
                 </div>
               </FadeContent>
             )}
