@@ -3,6 +3,7 @@ import logo from "../assets/PrismLogo-dark-removebg.png";
 import robot from "../assets/robot.png";
 import upload from "../assets/upload.png";
 import magnifyingGlass from "../assets/magnifying-Glass.png";
+import vault from "../assets/vault.png";
 
 const Navbar = () => {
   const items = [
@@ -18,14 +19,15 @@ const Navbar = () => {
       href: "/import",
     },
     {
-      label: "Clarify",
+      label: "Vault",
       bgColor: "rgba(23, 13, 39, 0.7)",
       textColor: "#fff",
       //   links: [
       //     { label: "Featured", ariaLabel: "Featured Projects" },
       //     { label: "Case Studies", ariaLabel: "Project Case Studies" },
       //   ],
-      imageSrc: magnifyingGlass,
+      imageSrc: vault,
+      href: "/vault",
     },
     {
       label: "Argus",

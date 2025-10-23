@@ -1,6 +1,6 @@
 import { GlowEffect } from "@/components/core/glow-effect";
 import { ArrowRight } from "lucide-react";
-import robot from "../assets/robot.png";
+import magnifyingGlass from "../assets/magnifying-glass-light.png";
 
 export function GlowEffectButton() {
   return (
@@ -12,9 +12,9 @@ export function GlowEffectButton() {
         duration={3}
         scale={0.9}
       />
-      <button className="relative inline-flex items-center gap-3 rounded-full bg-zinc-950 px-6 py-2.5 text-sm text-zinc-50 outline outline-2 outline-[#fff2f21f]">
-        <img src={robot} alt="Argus Logo" className="h-5 w-5" />
-        <span>Argus</span>
+      <button className="relative inline-flex items-center gap-3 rounded-full bg-zinc-950 px-6 py-2.5 text-sm text-zinc-50 outline outline-2 outline-[#fff2f21f] hover:-translate-y-1 transition duration-400">
+        <img src={magnifyingGlass} alt="Clarify Logo" className="h-5 w-5" />
+        <span>Clarify</span>
       </button>
     </div>
   );

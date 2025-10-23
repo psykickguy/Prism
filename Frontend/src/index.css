@@ -8,7 +8,8 @@
 @layer base {
   .theme {
     --animate-rippling: rippling var(--duration) ease-out
-  }
+  ;
+    --animate-aurora: aurora 8s ease-in-out infinite alternate}
   :root {
     --background: 0 0% 100%;
     --foreground: 224 71.4% 4.1%;
@@ -81,6 +82,28 @@
   100% {
     transform: scale(2);
     opacity: 0;
+    }
+  }
+  @keyframes aurora {
+  0% {
+    background-position: 0% 50%;
+    transform: rotate(-5deg) scale(0.9);
+    }
+  25% {
+    background-position: 50% 100%;
+    transform: rotate(5deg) scale(1.1);
+    }
+  50% {
+    background-position: 100% 50%;
+    transform: rotate(-3deg) scale(0.95);
+    }
+  75% {
+    background-position: 50% 0%;
+    transform: rotate(3deg) scale(1.05);
+    }
+  100% {
+    background-position: 0% 50%;
+    transform: rotate(-5deg) scale(0.9);
     }
   }
 }

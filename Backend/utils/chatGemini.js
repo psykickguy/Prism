@@ -8,7 +8,7 @@ const chatGemini = async (messages) => {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "llama-3.1-8b-instant",
+      model: "provider-3/gpt-4o-mini",
       messages: messages.map((m) => ({
         role: m.role,
         content: m.content,
@@ -18,7 +18,7 @@ const chatGemini = async (messages) => {
 
   try {
     const response = await fetch(
-      "https://api.groq.com/v1/chat/completions",
+      "https://api.a4f.co/v1/chat/completions",
       options
     );
     const data = await response.json();

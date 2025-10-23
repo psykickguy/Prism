@@ -3,6 +3,7 @@ import React, { useRef, useState } from "react";
 import { motion } from "motion/react";
 import { IconUpload } from "@tabler/icons-react";
 import { useDropzone } from "react-dropzone";
+import { GlowEffectButton } from "@/components/GlowEffectButton";
 
 const mainVariant = {
   initial: {
@@ -39,7 +40,7 @@ export const FileUpload = ({ onChange }) => {
   };
 
   const { getRootProps, isDragActive } = useDropzone({
-    multiple: false,
+    multiple: true, // Set to true to match screenshot
     noClick: true,
     onDrop: handleFileChange,
     onDropRejected: (error) => {
@@ -52,8 +53,8 @@ export const FileUpload = ({ onChange }) => {
       <motion.div
         onClick={handleClick}
         whileHover="animate"
-        // MODIFIED: Made component full-screen and centered its content
-        className="p-10 group/file block cursor-pointer w-full min-h-screen relative overflow-hidden flex flex-col items-center justify-center"
+        // --- CHANGED: 1. Removed `overflow-hidden` to allow `position: sticky` to work ---
+        className="p-10 group/file block cursor-pointer w-full min-h-screen relative flex flex-col items-center justify-center"
       >
         <input
           ref={fileInputRef}
@@ -61,6 +62,7 @@ export const FileUpload = ({ onChange }) => {
           type="file"
           onChange={(e) => handleFileChange(Array.from(e.target.files || []))}
           className="hidden"
+          multiple
         />
         <div className="absolute inset-0 [mask-image:radial-gradient(ellipse_at_center,white,transparent)]">
           <GridPattern />
@@ -75,57 +77,68 @@ export const FileUpload = ({ onChange }) => {
             Drag or drop your files here or click to upload
           </p>
           <div className="relative w-full mt-10 max-w-xl mx-auto">
-            {files.length > 0 &&
-              files.map((file, idx) => (
-                <motion.div
-                  key={"file" + idx}
-                  layoutId={idx === 0 ? "file-upload" : "file-upload-" + idx}
-                  className={cn(
-                    // This is your "frosted glass" card for the file
-                    "relative overflow-hidden z-40 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-sm flex flex-col items-start justify-start md:h-24 p-4 mt-4 w-full mx-auto rounded-md",
-                    "shadow-sm border border-white/10" // Added a subtle border
-                  )}
-                >
-                  <div className="flex justify-between w-full items-center gap-4">
-                    <motion.p
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      layout
-                      className="text-base text-neutral-700 dark:text-neutral-300 truncate max-w-xs"
-                    >
-                      {file.name}
-                    </motion.p>
-                    <motion.p
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      layout
-                      className="rounded-lg px-2 py-1 w-fit shrink-0 text-sm text-neutral-600 dark:bg-neutral-800 dark:text-white shadow-input"
-                    >
-                      {(file.size / (1024 * 1024)).toFixed(2)} MB
-                    </motion.p>
-                  </div>
+            {files.length > 0 && (
+              <>
+                {files.map((file, idx) => (
+                  <motion.div
+                    key={"file" + idx}
+                    layoutId={idx === 0 ? "file-upload" : "file-upload-" + idx}
+                    className={cn(
+                      "relative overflow-hidden z-40 bg-neutral-900/80 backdrop-blur-sm flex flex-col items-start justify-start md:h-24 p-4 mt-4 w-full mx-auto rounded-md",
+                      "shadow-sm border border-neutral-700"
+                    )}
+                  >
+                    <div className="flex justify-between w-full items-center gap-4">
+                      <motion.p
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        layout
+                        className="text-base text-neutral-300 truncate max-w-xs"
+                      >
+                        {file.name}
+                      </motion.p>
+                      <motion.p
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        layout
+                        className="rounded-lg px-2 py-1 w-fit shrink-0 text-sm bg-neutral-800 text-neutral-300 shadow-input"
+                      >
+                        {(file.size / (1024 * 1024)).toFixed(2)} MB
+                      </motion.p>
+                    </div>
 
-                  <div className="flex text-sm md:flex-row flex-col items-start md:items-center w-full mt-2 justify-between text-neutral-600 dark:text-neutral-400">
-                    <motion.p
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      layout
-                      className="px-1 py-0.5 rounded-md bg-gray-100 dark:bg-neutral-800 "
-                    >
-                      {file.type}
-                    </motion.p>
+                    <div className="flex text-sm md:flex-row flex-col items-start md:items-center w-full mt-2 justify-between text-neutral-600 dark:text-neutral-400">
+                      <motion.p
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        layout
+                        className="px-1 py-0.5 rounded-md bg-neutral-800 text-neutral-400"
+                      >
+                        {file.type}
+                      </motion.p>
 
-                    <motion.p
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      layout
-                    >
-                      modified{" "}
-                      {new Date(file.lastModified).toLocaleDateString()}
-                    </motion.p>
-                  </div>
-                </motion.div>
-              ))}
+                      <motion.p
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        layout
+                        className="text-neutral-400"
+                      >
+                        modified{" "}
+                        {new Date(file.lastModified).toLocaleDateString()}
+                      </motion.p>
+                    </div>
+                  </motion.div>
+                ))}
+
+                {/* --- CHANGED: 2. Made the button 'sticky' to the bottom --- */}
+                {/* It will now stick 1.5rem (bottom-6) from the viewport bottom when you scroll. */}
+                {/* z-50 ensures it's on top of the file list (which is z-40) */}
+                <div className="flex justify-center mt-6 sticky bottom-6 z-50">
+                  <GlowEffectButton />
+                </div>
+              </>
+            )}
+
             {!files.length && (
               <motion.div
                 layoutId="file-upload"
@@ -168,21 +181,18 @@ export const FileUpload = ({ onChange }) => {
   );
 };
 
+// ... (GridPattern function remains the same) ...
 export function GridPattern() {
   const columns = 41;
   const rows = 11;
   return (
-    <div
-      // MODIFIED: Made background transparent
-      className="flex bg-transparent shrink-0 flex-wrap justify-center items-center gap-x-px gap-y-px scale-105"
-    >
+    <div className="flex bg-transparent shrink-0 flex-wrap justify-center items-center gap-x-px gap-y-px scale-105">
       {Array.from({ length: rows }).map((_, row) =>
         Array.from({ length: columns }).map((_, col) => {
           const index = row * columns + col;
           return (
             <div
               key={`${col}-${row}`}
-              // MODIFIED: Replaced opaque shadow with a faint, semi-transparent background
               className={`w-10 h-10 flex shrink-0 rounded-[2px] ${
                 index % 2 === 0
                   ? "bg-transparent"
