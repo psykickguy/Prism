@@ -1,4 +1,19 @@
-import { useRef, useEffect, useState, useCallback } from "react";
+"use client";
+
+// --- ADDED ---
+import React, {
+  useRef,
+  useEffect,
+  useState,
+  useCallback,
+  useId, // Added useId
+} from "react";
+import { AnimatePresence, motion } from "framer-motion"; // Use framer-motion
+import { IconX } from "@tabler/icons-react";
+import { useOutsideClick } from "@/hooks/use-outside-click";
+import { AppleCardsCarouselWrapper } from "@/components/ui/AppleCardsCarouselWrapper"; // Import the carousel
+// --- END ADDED ---
+
 import { gsap } from "gsap";
 
 const DEFAULT_PARTICLE_COUNT = 12;
@@ -89,6 +104,7 @@ const ParticleCard = ({
   enableTilt = true,
   clickEffect = false,
   enableMagnetism = false,
+  onClick, // --- ADDED onClick prop ---
 }) => {
   const cardRef = useRef(null);
   const particlesRef = useRef([]);
@@ -254,6 +270,9 @@ const ParticleCard = ({
     };
 
     const handleClick = (e) => {
+      if (onClick) {
+        onClick(e); // --- ADDED --- Pass the click up
+      }
       if (!clickEffect) return;
 
       const rect = element.getBoundingClientRect();
@@ -301,7 +320,7 @@ const ParticleCard = ({
     element.addEventListener("mouseenter", handleMouseEnter);
     element.addEventListener("mouseleave", handleMouseLeave);
     element.addEventListener("mousemove", handleMouseMove);
-    element.addEventListener("click", handleClick);
+    element.addEventListener("click", handleClick); // --- MODIFIED ---
 
     return () => {
       isHoveredRef.current = false;
@@ -319,6 +338,7 @@ const ParticleCard = ({
     enableMagnetism,
     clickEffect,
     glowColor,
+    onClick, // --- ADDDED ---
   ]);
 
   return (
@@ -520,8 +540,68 @@ const MagicBento = ({
   const isMobile = useMobileDetection();
   const shouldDisableAnimations = disableAnimations || isMobile;
 
+  // --- ADDED --- (State logic from ExpandableCardDemo)
+  const [activeCard, setActiveCard] = useState(null); // 'null' or the card object
+  const modalRef = useRef(null);
+
+  useEffect(() => {
+    function onKeyDown(event) {
+      if (event.key === "Escape") {
+        setActiveCard(null); // Close modal on Escape
+      }
+    }
+    if (activeCard) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "auto";
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [activeCard]);
+
+  useOutsideClick(modalRef, () => setActiveCard(null)); // Close on outside click
+  // --- END ADDED ---
+
   return (
     <>
+      {/* --- ADDED --- (Modal JSX) */}
+      <AnimatePresence>
+        {activeCard ? (
+          <div className="fixed inset-0 grid place-items-center z-[100]">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm h-full w-full z-10"
+            />
+            <motion.button
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0, transition: { duration: 0.05 } }}
+              className="flex absolute top-4 right-4 items-center justify-center bg-white/20 backdrop-blur-sm rounded-full h-8 w-8 z-20"
+              onClick={() => setActiveCard(null)}
+            >
+              <IconX className="h-4 w-4 text-white" />
+            </motion.button>
+
+            <motion.div
+              // We use a simple fade/scale, NO layoutId
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              ref={modalRef}
+              className="w-full max-w-[90%] md:max-w-5xl h-full md:h-[90%] flex flex-col bg-neutral-900/80 backdrop-blur-md border border-neutral-700 sm:rounded-3xl overflow-hidden z-20"
+            >
+              {/* Render the carousel inside the modal */}
+              {/* You can use a switch statement here if you want */}
+              {/* {activeCard.title === "Recommendations" ? <AppleCardsCarouselWrapper /> : <p>Other content</p>} */}
+
+              <AppleCardsCarouselWrapper />
+            </motion.div>
+          </div>
+        ) : null}
+      </AnimatePresence>
+      {/* --- END ADDED --- */}
       <style>
         {`
           .bento-section {
@@ -686,6 +766,7 @@ const MagicBento = ({
                   enableTilt={enableTilt}
                   clickEffect={clickEffect}
                   enableMagnetism={enableMagnetism}
+                  onClick={() => setActiveCard(card)} // --- MODIFIED ---
                 >
                   <div className="card__header flex justify-between gap-3 relative text-white">
                     <span className="card__label text-base">{card.label}</span>
@@ -776,6 +857,7 @@ const MagicBento = ({
                   };
 
                   const handleClick = (e) => {
+                    setActiveCard(card); // --- MODIFIED ---
                     if (!clickEffect || shouldDisableAnimations) return;
 
                     const rect = el.getBoundingClientRect();
