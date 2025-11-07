@@ -4,11 +4,13 @@ import React, { useEffect, useId, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { useOutsideClick } from "@/hooks/use-outside-click";
 import { GlowEffectButton } from "@/components/GlowEffectButton"; // --- MODIFIED --- (Added import)
+import { useNavigate } from "react-router-dom";
 
 export function VaultList() {
   const [active, setActive] = useState(null);
   const id = useId();
   const ref = useRef(null);
+  const navigate = useNavigate(); // <-- ADD THIS LINE
 
   useEffect(() => {
     function onKeyDown(event) {
@@ -102,15 +104,17 @@ export function VaultList() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
+                    onClick={() => navigate(`/clarity/${active.id}`)}
+                    className="cursor-pointer"
                   >
                     {/* We wrap the button in a link to keep the click action */}
-                    <a
+                    {/* <a
                       href={active.ctaLink}
                       target="_blank"
                       rel="noopener noreferrer"
-                    >
-                      <GlowEffectButton>{active.ctaText}</GlowEffectButton>
-                    </a>
+                    > */}
+                    <GlowEffectButton>{active.ctaText}</GlowEffectButton>
+                    {/* </a> */}
                   </motion.div>
                   {/* --- END MODIFICATION --- */}
                 </div>
@@ -208,6 +212,7 @@ export const CloseIcon = () => {
 // ... (cards array remains unchanged) ...
 const cards = [
   {
+    id: "file-id-123", // <-- ADD THIS
     description: "Lana Del Rey",
     title: "Summertime Sadness",
     src: "https://assets.aceternity.com/demos/lana-del-rey.jpeg",
@@ -231,6 +236,7 @@ const cards = [
     },
   },
   {
+    id: "file-id-456", // <-- ADD THIS
     description: "Babbu Maan",
     title: "Mitran Di Chhatri",
     src: "https://assets.aceternity.com/demos/babbu-maan.jpeg",
@@ -254,6 +260,7 @@ const cards = [
   },
 
   {
+    id: "file-id-789", // <-- ADD THIS
     description: "Metallica",
     title: "For Whom The Bell Tolls",
     src: "https://assets.aceternity.com/demos/metallica.jpeg",
@@ -276,6 +283,7 @@ const cards = [
     },
   },
   {
+    id: "file-id-123", // <-- ADD THIS
     description: "Lord Himesh",
     title: "Aap Ka Suroor",
     src: "https://assets.aceternity.com/demos/aap-ka-suroor.jpeg",

@@ -9,12 +9,13 @@ import React, {
   useId, // Added useId
 } from "react";
 import { AnimatePresence, motion } from "framer-motion"; // Use framer-motion
-import { IconX } from "@tabler/icons-react";
+// import { IconX } from "@tabler/icons-react";
 import { useOutsideClick } from "@/hooks/use-outside-click";
-import { AppleCardsCarouselWrapper } from "@/components/ui/AppleCardsCarouselWrapper"; // Import the carousel
+// import { AppleCardsCarouselWrapper } from "@/components/ui/AppleCardsCarouselWrapper"; // Import the carousel
 // --- END ADDED ---
 
 import { gsap } from "gsap";
+import { useNavigate, useParams } from "react-router-dom";
 
 const DEFAULT_PARTICLE_COUNT = 12;
 const DEFAULT_SPOTLIGHT_RADIUS = 300;
@@ -23,42 +24,90 @@ const MOBILE_BREAKPOINT = 768;
 
 const cardData = [
   {
-    color: "rgba(6, 0, 16, 0.7)", // --- UPDATED with 70% opacity ---
+    color: "rgba(6, 0, 16, 0.7)",
     title: "Summary",
     description: "Get a concise overview of the document.",
     label: "Overview",
+    slug: "summary", // <-- Use a simple slug for the URL
   },
   {
-    color: "rgba(6, 0, 16, 0.7)", // --- UPDATED with 70% opacity ---
+    color: "rgba(6, 0, 16, 0.7)",
     title: "Explain Clauses",
     description: "Understand specific clauses in simple terms.",
     label: "Clarity",
+    slug: "explain-clauses", // <-- Use a simple slug
   },
   {
-    color: "rgba(6, 0, 16, 0.7)", // --- UPDATED with 70% opacity ---
+    color: "rgba(6, 0, 16, 0.7)",
     title: "Highlight Risks",
     description: "Identify potential risks and warnings.",
     label: "Risk Analysis",
+    slug: "highlight-risks",
   },
   {
-    color: "rgba(6, 0, 16, 0.7)", // --- UPDATED with 70% opacity ---
+    color: "rgba(6, 0, 16, 0.7)",
     title: "Recommendations",
     description: "Receive actionable advice based on the content.",
     label: "Advice",
+    slug: "recommendations",
   },
   {
-    color: "rgba(6, 0, 16, 0.7)", // --- UPDATED with 70% opacity ---
+    color: "rgba(6, 0, 16, 0.7)",
     title: "Find Hidden Terms",
     description: "Uncover potentially overlooked details.",
     label: "Deep Dive",
+    slug: "find-hidden-terms",
   },
   {
-    color: "rgba(6, 0, 16, 0.7)", // --- UPDATED with 70% opacity ---
+    color: "rgba(6, 0, 16, 0.7)",
     title: "Ask a Question",
     description: "Query the document about specific information.",
     label: "Query",
+    slug: "ask-a-question",
   },
 ];
+
+// --- ADDED: Content for the modal ---
+// (I copied this from your 'ClarityDetail.jsx' code)
+const DummyContent = () => {
+  return (
+    <>
+      {[...new Array(3).fill(1)].map((_, index) => {
+        return (
+          <div
+            key={"dummy-content" + index}
+            // --- MODIFIED: Added dark mode styles to match your image ---
+            className="bg-[#F5F5F7] dark:bg-neutral-800 p-8 md:p-14 rounded-3xl mb-4"
+          >
+            <p className="text-neutral-600 dark:text-neutral-200 text-base md:text-2xl font-sans max-w-3xl mx-auto">
+              <span className="font-bold text-neutral-700 dark:text-neutral-100">
+                The first rule of Apple club is that you boast about Apple club.
+              </span>{" "}
+              Keep a journal, quickly jot down a grocery list, and take amazing
+              class notes. Want to convert those notes to text? No problem.
+              Langotiya jeetu ka mara hua yaar is ready to capture every
+              thought.
+            </p>
+            <img
+              src="https://assets.aceternity.com/macbook.png"
+              alt="Macbook mockup from Aceternity UI"
+              height="500"
+              width="500"
+              className="md:w-1/2 md:h-1/2 h-full w-full mx-auto object-contain"
+            />
+          </div>
+        );
+      })}
+    </>
+  );
+};
+// This is the data for the "AI" modal, as you requested
+const modalData = {
+  category: "Artificial Intelligence",
+  title: "You can do more with AI.",
+  content: <DummyContent />,
+};
+// --- END ADDED ---
 
 const createParticleElement = (x, y, color = DEFAULT_GLOW_COLOR) => {
   const el = document.createElement("div");
@@ -540,6 +589,11 @@ const MagicBento = ({
   const isMobile = useMobileDetection();
   const shouldDisableAnimations = disableAnimations || isMobile;
 
+  // --- ADD THESE LINES ---
+  const navigate = useNavigate();
+  const { id } = useParams(); // Gets the file ID (e.g., "abc123") from the URL
+  // --- END ADD ---
+
   // --- ADDED --- (State logic from ExpandableCardDemo)
   const [activeCard, setActiveCard] = useState(null); // 'null' or the card object
   const modalRef = useRef(null);
@@ -754,6 +808,14 @@ const MagicBento = ({
               "--glow-radius": "200px",
             };
 
+            // --- THIS IS THE NEW CLICK HANDLER ---
+            const handleCardClick = () => {
+              if (card.slug) {
+                // This builds the new URL, e.g., /clarity/abc123/summary
+                navigate(`/clarity/${id}/${card.slug}`);
+              }
+            };
+
             if (enableStars) {
               return (
                 <ParticleCard
@@ -766,7 +828,8 @@ const MagicBento = ({
                   enableTilt={enableTilt}
                   clickEffect={clickEffect}
                   enableMagnetism={enableMagnetism}
-                  onClick={() => setActiveCard(card)} // --- MODIFIED ---
+                  // onClick={() => setActiveCard(card)} // --- MODIFIED ---
+                  onClick={handleCardClick} // <-- Use the new handler
                 >
                   <div className="card__header flex justify-between gap-3 relative text-white">
                     <span className="card__label text-base">{card.label}</span>
@@ -857,7 +920,8 @@ const MagicBento = ({
                   };
 
                   const handleClick = (e) => {
-                    setActiveCard(card); // --- MODIFIED ---
+                    // setActiveCard(card); // --- MODIFIED ---
+                    handleCardClick(); // <-- Use the new handler here too
                     if (!clickEffect || shouldDisableAnimations) return;
 
                     const rect = el.getBoundingClientRect();

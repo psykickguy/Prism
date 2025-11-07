@@ -1,9 +1,6 @@
 import { useEffect } from "react";
 
-export const useOutsideClick = (
-  ref,
-  callback
-) => {
+export const useOutsideClick = (ref, callback) => {
   useEffect(() => {
     const listener = (event) => {
       // DO NOTHING if the element being clicked is the target element or their children

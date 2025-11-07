@@ -6,6 +6,7 @@ import Landing from "./pages/Landing";
 import Import from "./pages/Import";
 import Vault from "./pages/Vault";
 import Clarity from "./pages/Clarity";
+import ClarityDetails from "./pages/ClarityDetails";
 // import SignInButton from "/components/SignInButton";
 
 function App() {
@@ -19,7 +20,11 @@ function App() {
             <Route path="/" element={<Landing />} />
             <Route path="/import" element={<Import />} />
             <Route path="/vault" element={<Vault />} />
-            <Route path="/clarity" element={<Clarity />} />
+            <Route path="/clarity/:id" element={<Clarity />} />
+            <Route
+              path="/clarity/:id/:analysisType"
+              element={<ClarityDetails />}
+            />
           </Routes>
         </main>
       </Router>

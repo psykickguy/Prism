@@ -5,10 +5,12 @@ import { GlowEffectButton } from "@/components/GlowEffectButton";
 import FadeContent from "@/components/FadeContent";
 import AiButton from "@/components/animata/button/ai-button.jsx";
 import ChatBot from "react-chatbotify";
+import { useNavigate } from "react-router-dom";
 
 export default function Landing() {
   const [showSecondLine, setShowSecondLine] = useState(false);
   const [showButtons, setShowButtons] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const textTimer = setTimeout(() => setShowSecondLine(true), 1000);
@@ -52,7 +54,9 @@ export default function Landing() {
                 initialOpacity={0}
               >
                 <div className="flex items-center justify-center gap-5">
-                  <InteractiveHoverButton>Get Started</InteractiveHoverButton>
+                  <InteractiveHoverButton onClick={() => navigate(`/import`)}>
+                    Get Started
+                  </InteractiveHoverButton>
                   {/* <GlowEffectButton /> */}
                   <AiButton />
                   {/* <ChatBot /> */}
