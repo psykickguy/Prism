@@ -25,6 +25,7 @@ const CardNav = ({
   menuColor,
   buttonBgColor,
   buttonTextColor,
+  onItemClick = () => {},
 }) => {
   const [isHamburgerOpen, setIsHamburgerOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -254,12 +255,29 @@ const CardNav = ({
           aria-hidden={!isExpanded}
         >
           {(items || []).slice(0, 3).map((item, idx) => {
+            const isClickable = !item.href;
             const cardContent = (
               <div
                 key={`${item.label}-${idx}`}
                 className="nav-card select-none relative flex flex-col gap-2 p-[12px_16px] rounded-[calc(0.75rem-0.2rem)] min-w-0 flex-[1_1_auto] h-auto min-h-[60px] md:h-full md:min-h-0 md:flex-[1_1_0%] overflow-hidden" // Added overflow-hidden
                 ref={setCardRef(idx)}
                 style={{ backgroundColor: item.bgColor, color: item.textColor }}
+                {...(isClickable
+                  ? {
+                      role: "button",
+                      tabIndex: 0,
+                      onClick: () => onItemClick(item),
+                      onKeyDown: (e) => {
+                        if (e.key === "Enter" || e.key === " ")
+                          onItemClick(item);
+                      },
+                      style: {
+                        cursor: "pointer",
+                        ...{ backgroundColor: item.bgColor },
+                        color: item.textColor,
+                      },
+                    }
+                  : {})}
               >
                 {/* The label, now relative to position text above the image */}
                 <div className="nav-card-label font-normal tracking-[-0.5px] text-[18px] md:text-[22px] relative z-10">

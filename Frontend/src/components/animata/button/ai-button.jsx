@@ -119,7 +119,7 @@ const options = {
   ],
 };
 
-export default function AiButton() {
+export default function AiButton({ onClick }) {
   // We remove the <"loaded" | "ready"> type
   const [particleState, setParticlesReady] = useState();
   const [isHovering, setIsHovering] = useState(false);
@@ -139,6 +139,7 @@ export default function AiButton() {
 
   return (
     <button
+      onClick={onClick}
       className="group relative my-8 rounded-full bg-gradient-to-r from-blue-300/30 via-blue-500/30 via-40% to-purple-500/30 p-1 text-white transition-transform hover:scale-110 active:scale-105"
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}

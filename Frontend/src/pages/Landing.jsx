@@ -7,9 +7,12 @@ import AiButton from "@/components/animata/button/ai-button.jsx";
 import ChatBot from "react-chatbotify";
 import { useNavigate } from "react-router-dom";
 
+import { DraggableCardDemo } from "@/components/DraggableCard";
+
 export default function Landing() {
   const [showSecondLine, setShowSecondLine] = useState(false);
   const [showButtons, setShowButtons] = useState(false);
+  const [isChatVisible, setIsChatVisible] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -21,8 +24,18 @@ export default function Landing() {
     };
   }, []);
 
+  const toggleArgusChat = () => {
+    setIsChatVisible((prev) => !prev);
+  };
+
   return (
     <>
+      {isChatVisible && (
+        <DraggableCardDemo
+          isVisible={isChatVisible}
+          toggleVisibility={toggleArgusChat}
+        />
+      )}
       <div className="relative w-full min-h-screen flex items-center justify-center text-white">
         {/* Add a top margin to this inner container */}
         <div className="mt-24 flex flex-col items-center gap-8 px-4 text-center">
@@ -58,7 +71,7 @@ export default function Landing() {
                     Get Started
                   </InteractiveHoverButton>
                   {/* <GlowEffectButton /> */}
-                  <AiButton />
+                  <AiButton onClick={toggleArgusChat} />
                   {/* <ChatBot /> */}
                 </div>
               </FadeContent>

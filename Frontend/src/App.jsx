@@ -7,6 +7,7 @@ import Import from "./pages/Import";
 import Vault from "./pages/Vault";
 import Clarity from "./pages/Clarity";
 import ClarityDetails from "./pages/ClarityDetails";
+// import Argus from "./pages/Argus";
 // import SignInButton from "/components/SignInButton";
 
 function App() {
@@ -25,6 +26,7 @@ function App() {
               path="/clarity/:id/:analysisType"
               element={<ClarityDetails />}
             />
+            {/* <Route path="/argus" element={<Argus />} /> */}
           </Routes>
         </main>
       </Router>
