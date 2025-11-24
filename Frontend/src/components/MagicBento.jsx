@@ -47,7 +47,13 @@ const cardData = [
   {
     color: "rgba(6, 0, 16, 0.7)",
     title: "Recommendations",
-    description: "Receive actionable advice based on the content.",
+    // description: "Receive actionable advice based on the content.",
+    recommendationsList: [
+      "Carefully review the purchase agreement to understand all clauses related to maintenance, common charges, and special assessments.",
+      "Request full financial disclosures for the building, including the reserve fund balance and any upcoming major capital expenditure plans.",
+      "Seek written clarification from the seller or building management regarding the specific definition and scope of 'unforeseen expenses'.",
+      "Consult with a qualified real estate attorney to assess the full extent of the buyer's financial obligations and potential liabilities.",
+    ],
     label: "Advice",
     slug: "recommendations",
   },
@@ -842,13 +848,39 @@ const MagicBento = ({
                     >
                       {card.title}
                     </h3>
-                    <p
+                    {/* <p
                       className={`card__description text-xs leading-5 opacity-90 text-left  ${
                         textAutoHide ? "text-clamp-2" : ""
                       }`}
                     >
+
                       {card.description}
-                    </p>
+                    </p> */}
+                    {/* --- MODIFIED: Show list for Recommendations, description for others --- */}
+                                       {" "}
+                    {card.slug === "recommendations" ? (
+                      <div className="description-fade-container mt-1">
+                                               {" "}
+                        <ul className="recommendation-list text-xs leading-5 opacity-90 space-y-2">
+                                                   {" "}
+                          {card.recommendationsList.map((item, i) => (
+                            <li key={i}>{item}</li>
+                          ))}
+                                                 {" "}
+                        </ul>
+                                             {" "}
+                      </div>
+                    ) : (
+                      <p
+                        className={`card__description text-xs leading-5 opacity-90 text-left ${
+                          textAutoHide ? "text-clamp-2" : ""
+                        }`}
+                      >
+                                                {card.description}             
+                               {" "}
+                      </p>
+                    )}
+                                        {/* --- END MODIFICATION --- */}
                   </div>
                 </ParticleCard>
               );
@@ -982,13 +1014,38 @@ const MagicBento = ({
                   >
                     {card.title}
                   </h3>
-                  <p
+                  {/* <p
                     className={`card__description text-xs leading-5 opacity-90 text-left ${
                       textAutoHide ? "text-clamp-2" : ""
                     }`}
                   >
                     {card.description}
-                  </p>
+                  </p> */}
+                  {/* --- MODIFIED: Show list for Recommendations, description for others --- */}
+                                   {" "}
+                  {card.slug === "recommendations" ? (
+                    <div className="description-fade-container mt-1">
+                                             {" "}
+                      <ul className="recommendation-list text-xs leading-5 opacity-90 space-y-2">
+                                                 {" "}
+                        {card.recommendationsList.map((item, i) => (
+                          <li key={i}>{item}</li>
+                        ))}
+                                               {" "}
+                      </ul>
+                                         {" "}
+                    </div>
+                  ) : (
+                    <p
+                      className={`card__description text-xs leading-5 opacity-90 text-left ${
+                        textAutoHide ? "text-clamp-2" : ""
+                      }`}
+                    >
+                                              {card.description}               
+                           {" "}
+                    </p>
+                  )}
+                                    {/* --- END MODIFICATION --- */}
                 </div>
               </div>
             );

@@ -1,9 +1,11 @@
 import { cn } from "@/lib/utils";
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useCallback } from "react";
 import { motion } from "motion/react";
-import { IconUpload } from "@tabler/icons-react";
+import { IconUpload, IconSquareRoundedX } from "@tabler/icons-react";
 import { useDropzone } from "react-dropzone";
 import { GlowEffectButton } from "@/components/GlowEffectButton";
+import { MultiStepLoader as Loader } from "@/components/ui/multi-step-loader.jsx";
+import { useNavigate } from "react-router-dom";
 
 const mainVariant = {
   initial: {
@@ -26,9 +28,63 @@ const secondaryVariant = {
   },
 };
 
+// --- ADDED: Loader Data ---
+const loadingStates = [
+  {
+    text: "Buying a condo",
+  },
+  {
+    text: "Travelling in a flight",
+  },
+  {
+    text: "Meeting Tyler Durden",
+  },
+  {
+    text: "He makes soap",
+  },
+  {
+    text: "We goto a bar",
+  },
+  {
+    text: "Start a fight",
+  },
+  {
+    text: "We like it",
+  },
+  {
+    text: "Welcome to F**** C***",
+  },
+];
+
 export const FileUpload = ({ onChange }) => {
   const [files, setFiles] = useState([]);
   const fileInputRef = useRef(null);
+  const [loading, setLoading] = useState(false); // <--- ADDED STATE
+
+  const navigate = useNavigate();
+
+  // NOTE: You need to define 'removeFile' here if you want to use it:
+  const removeFile = useCallback((fileToRemove) => {
+    setFiles((prevFiles) => prevFiles.filter((file) => file !== fileToRemove));
+  }, []);
+
+  // --- ADDED: Sequence Handler (Modified from previous steps) ---
+  // --- MODIFIED: Sequence Handler with navigation ---
+  const handleProcessFiles = (e) => {
+    if (e && e.stopPropagation) {
+      e.stopPropagation();
+    }
+    if (files.length === 0) return;
+
+    setLoading(true);
+
+    setTimeout(() => {
+      setLoading(false); // --- NAVIGATION LOGIC --- // NOTE: You should replace 'file123abc' with a real, generated document ID later.
+      const documentId = "file123abc";
+      navigate(`/clarity/${documentId}`); // <--- NAVIGATES TO THE TARGET ROUTE // --- END NAVIGATION LOGIC --- // Clear files state after successful navigation
+      setFiles([]);
+    }, loadingStates.length * 2000 + 500);
+  };
 
   const handleFileChange = (newFiles) => {
     setFiles((prevFiles) => [...prevFiles, ...newFiles]);
@@ -129,13 +185,22 @@ export const FileUpload = ({ onChange }) => {
                     </div>
                   </motion.div>
                 ))}
-
-                {/* --- CHANGED: 2. Made the button 'sticky' to the bottom --- */}
-                {/* It will now stick 1.5rem (bottom-6) from the viewport bottom when you scroll. */}
-                {/* z-50 ensures it's on top of the file list (which is z-40) */}
+                <Loader // <--- LOADER RENDERED HERE
+                  loadingStates={loadingStates}
+                  loading={loading}
+                  duration={2000}
+                />
                 <div className="flex justify-center mt-6 sticky bottom-6 z-50">
-                  <GlowEffectButton />
+                  <GlowEffectButton onClick={handleProcessFiles} />
                 </div>
+                {loading && ( // <--- CLOSE BUTTON RENDERED HERE
+                  <button
+                    className="fixed top-4 right-4 text-black dark:text-white z-[120]"
+                    onClick={() => setLoading(false)}
+                  >
+                    <IconSquareRoundedX className="h-10 w-10" />
+                  </button>
+                )}
               </>
             )}
 

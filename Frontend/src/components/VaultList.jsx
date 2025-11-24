@@ -3,14 +3,35 @@
 import React, { useEffect, useId, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { useOutsideClick } from "@/hooks/use-outside-click";
-import { GlowEffectButton } from "@/components/GlowEffectButton"; // --- MODIFIED --- (Added import)
+// import { GlowEffectButton } from "@/components/GlowEffectButton"; // --- MODIFIED --- (Added import)
 import { useNavigate } from "react-router-dom";
+import { MultiStepLoader as Loader } from "@/components/ui/multi-step-loader.jsx";
+import { IconSquareRoundedX } from "@tabler/icons-react";
+// import { C } from "@clerk/clerk-react/dist/useAuth-BX_k9NPL";
+import { ClarityButton } from "@/components/ClarityButton"; // --- MODIFIED --- (Added import)
+
+const loadingStates = [
+  {
+    text: "Parsing Document structure",
+  },
+  {
+    text: "Identifying key risks",
+  },
+  {
+    text: "Generating actionable advice",
+  },
+  {
+    text: "Finalizing clarity report",
+  },
+];
 
 export function VaultList() {
   const [active, setActive] = useState(null);
   const id = useId();
   const ref = useRef(null);
   const navigate = useNavigate(); // <-- ADD THIS LINE
+
+  // const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     function onKeyDown(event) {
@@ -31,8 +52,63 @@ export function VaultList() {
 
   useOutsideClick(ref, () => setActive(null));
 
+  // --- MODIFIED: Sequence Handler with Chained Animation ---
+  // const handleProcessFiles = (e) => {
+  //   if (e && e.stopPropagation) {
+  //     e.stopPropagation();
+  //   }
+  //   const documentId = active.id; // 1. Trigger Modal Close first
+
+  //   setActive(null); // 2. Delay the start of the full-screen loader slightly (e.g., 50ms) // to allow the modal's exit animation to begin/finish.
+
+  //   setTimeout(() => {
+  //     setLoading(true); // Start the full-screen loader // 3. Set a second timeout for the processing duration
+
+  //     setTimeout(() => {
+  //       setLoading(false); // Stop the loader // 4. Navigate after loader stops
+  //       navigate(`/clarity/${documentId}`);
+  //     }, loadingStates.length * 2000 + 500);
+  //   }, 50); // <-- Delay here to chain the animations
+  // }; // --- END MODIFIED ---
+
+  const handleProcessFiles = (e) => {
+    if (e && e.stopPropagation) e.stopPropagation();
+    const documentId = active?.id;
+    setActive(null); // trigger layout exit
+    // small delay so the card/back animation starts before navigation
+    setTimeout(() => {
+      if (documentId) navigate(`/clarity/${documentId}`);
+    }, 50);
+  };
+
   return (
     <>
+      {/* --- ADDED: Full Screen Loader --- */}     {" "}
+      {/* {loading && (
+        <>
+                   {" "}
+          <Loader
+            loadingStates={loadingStates}
+            loading={loading}
+            duration={2000}
+          />
+                   {" "}
+          {/* Close button is usually handled inside the Loader component, 
+            but adding it here for manual override consistency: 
+                   {" "}
+          <motion.button
+            key="close-loader-btn"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed top-4 right-4 text-black dark:text-white z-[120]"
+            onClick={() => setLoading(false)}
+          >
+                        <IconSquareRoundedX className="h-10 w-10" />         {" "}
+          </motion.button>
+                 {" "}
+        </>
+      )} */}
       <AnimatePresence>
         {active && typeof active === "object" && (
           <motion.div
@@ -104,7 +180,7 @@ export function VaultList() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    onClick={() => navigate(`/clarity/${active.id}`)}
+                    onClick={handleProcessFiles}
                     className="cursor-pointer"
                   >
                     {/* We wrap the button in a link to keep the click action */}
@@ -113,7 +189,8 @@ export function VaultList() {
                       target="_blank"
                       rel="noopener noreferrer"
                     > */}
-                    <GlowEffectButton>{active.ctaText}</GlowEffectButton>
+                    {/* <GlowEffectButton>{active.ctaText}</GlowEffectButton> */}
+                    <ClarityButton>{active.ctaText}</ClarityButton>
                     {/* </a> */}
                   </motion.div>
                   {/* --- END MODIFICATION --- */}

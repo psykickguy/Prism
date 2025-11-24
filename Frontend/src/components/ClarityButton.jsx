@@ -2,38 +2,38 @@ import React, { useState } from "react";
 import { GlowEffect } from "@/components/core/glow-effect";
 import { ArrowRight } from "lucide-react";
 import magnifyingGlass from "../assets/magnifying-glass-light.png";
-import { MultiStepLoader as Loader } from "@/components/ui/multi-step-loader.jsx";
-import { IconSquareRoundedX } from "@tabler/icons-react";
+// import { MultiStepLoader as Loader } from "@/components/ui/multi-step-loader.jsx";
+// import { IconSquareRoundedX } from "@tabler/icons-react";
 
-const loadingStates = [
-  {
-    text: "Buying a condo",
-  },
-  {
-    text: "Travelling in a flight",
-  },
-  {
-    text: "Meeting Tyler Durden",
-  },
-  {
-    text: "He makes soap",
-  },
-  {
-    text: "We goto a bar",
-  },
-  {
-    text: "Start a fight",
-  },
-  {
-    text: "We like it",
-  },
-  {
-    text: "Welcome to F**** C***",
-  },
-];
+// const loadingStates = [
+//   {
+//     text: "Buying a condo",
+//   },
+//   {
+//     text: "Travelling in a flight",
+//   },
+//   {
+//     text: "Meeting Tyler Durden",
+//   },
+//   {
+//     text: "He makes soap",
+//   },
+//   {
+//     text: "We goto a bar",
+//   },
+//   {
+//     text: "Start a fight",
+//   },
+//   {
+//     text: "We like it",
+//   },
+//   {
+//     text: "Welcome to F**** C***",
+//   },
+// ];
 
-export function GlowEffectButton({ onClick }) {
-  const [loading, setLoading] = useState(false);
+export function ClarityButton() {
+  //   const [loading, setLoading] = useState(false);
   return (
     <div className="relative p-1">
       <GlowEffect
@@ -44,31 +44,31 @@ export function GlowEffectButton({ onClick }) {
         scale={0.9}
       />
 
-      <Loader loadingStates={loadingStates} loading={loading} duration={2000} />
+      {/* <Loader loadingStates={loadingStates} loading={loading} duration={2000} /> */}
       <button
-        onClick={(e) => {
-          // <--- CRITICAL FIX: Add event handler
-          e.stopPropagation(); // <--- STOP THE EVENT from bubbling to FileUpload's handleClick
-          if (onClick) {
-            onClick(e); // Pass the event if needed by the parent (best practice)
-          } else {
-            setLoading(true); // Keep local logic if no prop is passed (optional fallback)
-          }
-        }}
+        // onClick={(e) => {
+        //   // <--- CRITICAL FIX: Add event handler
+        //   e.stopPropagation(); // <--- STOP THE EVENT from bubbling to FileUpload's handleClick
+        //   if (onClick) {
+        //     onClick(e); // Pass the event if needed by the parent (best practice)
+        //   } else {
+        //     setLoading(true); // Keep local logic if no prop is passed (optional fallback)
+        //   }
+        // }}
         className="relative inline-flex items-center gap-3 rounded-full bg-zinc-950 px-6 py-2.5 text-sm text-zinc-50 outline outline-2 outline-[#fff2f21f] hover:-translate-y-1 transition duration-400"
       >
         <img src={magnifyingGlass} alt="Clarify Logo" className="h-5 w-5" />
         <span>Clarify</span>
       </button>
 
-      {loading && (
+      {/* {loading && (
         <button
           className="fixed top-4 right-4 text-black dark:text-white z-[120]"
           onClick={() => setLoading(false)}
         >
           <IconSquareRoundedX className="h-10 w-10" />
         </button>
-      )}
+      )} */}
     </div>
   );
 }
