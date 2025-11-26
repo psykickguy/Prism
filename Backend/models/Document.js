@@ -22,6 +22,9 @@ const DocumentSchema = new mongoose.Schema({
   //   ],
   //   hiddenTerms: [String], // optional future feature
 
+  thumbnailUrl: { type: String }, // 🚀 ADD THIS
+  thumbnailPath: { type: String }, // 🚀 ADD THIS
+
   status: {
     type: String,
     enum: ["uploaded", "processed", "analyzed"],

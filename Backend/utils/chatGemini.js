@@ -4,11 +4,11 @@ const chatGemini = async (messages) => {
   const options = {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+      Authorization: `Bearer ${process.env.GPT_API_KEY}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "provider-3/gpt-4o-mini",
+      model: "provider-2/gpt-4.1-mini",
       messages: messages.map((m) => ({
         role: m.role,
         content: m.content,
@@ -24,7 +24,7 @@ const chatGemini = async (messages) => {
     const data = await response.json();
 
     // Debugging
-    console.log("Groq raw response:", JSON.stringify(data, null, 2));
+    console.log("GPT raw response:", JSON.stringify(data, null, 2));
 
     // Extract assistant reply
     const rawOutput =
@@ -39,7 +39,7 @@ const chatGemini = async (messages) => {
 
     return cleaned;
   } catch (error) {
-    console.error("Error in chatGemini:", error);
+    console.error("Error in chatGPT:", error);
     return "⚠️ Sorry, something went wrong with the chatbot.";
   }
 };

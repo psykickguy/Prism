@@ -5,12 +5,12 @@ const callGemini = async (systemPrompt, userMessage) => {
     method: "POST",
     headers: {
       // Authorization: `Bearer ${process.env.GEMINI_API_KEY}`,
-      Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+      Authorization: `Bearer ${process.env.GPT_API_KEY}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      // model: "provider-3/gemma-3-4b-it",
-      model: "llama-3.1-8b-instant",
+      model: "provider-2/gpt-4.1-mini",
+      // model: "llama-3.1-8b-instant",
       messages: [
         {
           role: "system",
@@ -23,8 +23,8 @@ const callGemini = async (systemPrompt, userMessage) => {
 
   try {
     const response = await fetch(
-      // "https://api.a4f.co/v1/chat/completions",
-      "https://api.groq.com/openai/v1/chat/completions",
+      "https://api.a4f.co/v1/chat/completions",
+      // "https://api.groq.com/openai/v1/chat/completions",
       options
     );
     const data = await response.json();
@@ -39,15 +39,15 @@ const callGemini = async (systemPrompt, userMessage) => {
     //   "";
 
     // Debug raw response
-    console.log("Groq raw response:", JSON.stringify(data, null, 2));
+    console.log("gpt raw response:", JSON.stringify(data, null, 2));
 
     // Extract assistant text
     const rawOutput = data?.choices?.[0]?.message?.content || "";
 
     return rawOutput;
   } catch (error) {
-    console.error("Error calling Gemini:", error);
-    return { error: "Gemini API call failed" };
+    console.error("Error calling gpt:", error);
+    return { error: "gpt API call failed" };
   }
 };
 
