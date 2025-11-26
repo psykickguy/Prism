@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useOutsideClick } from "@/hooks/use-outside-click";
 import robot from "@/assets/robot.png";
+import { sendGeneralChat, sendDocChat } from "@/services/chatService";
 
 // --- icons & small components unchanged ---
 const EyeIcon = ({ className = "w-6 h-6" }) => (
@@ -123,28 +124,43 @@ function MessageBubble({ message }) {
 export function FloatingChatWidget({
   isVisible = false,
   toggleVisibility = () => {},
+  docId = null,
 }) {
   const chatRef = useRef(null);
   const scrollRef = useRef(null);
   const inputRef = useRef(null);
 
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      sender: "bot",
-      text: "Hello! I am Argus, your personal AI Legal Assistant. Upload a document to start a conversation.",
-    },
-    {
-      id: 2,
-      sender: "user",
-      text: "What are the main risks associated with the rental agreement I just imported?",
-    },
-    {
-      id: 3,
-      sender: "bot",
-      text: "I've identified 3 potential issues: 1) The termination clause is vague. 2) Maintenance fees are subject to unilateral change. 3) The default interest rate is unusually high (18%).",
-    },
-  ]);
+  const storageKey = docId ? `argus_chat_doc_${docId}` : "argus_chat_general";
+  const storageChatIdKey = storageKey + "_id";
+
+  const [messages, setMessages] = useState(() => {
+    try {
+      const raw = localStorage.getItem(storageKey);
+      return raw
+        ? JSON.parse(raw)
+        : [
+            {
+              id: "welcome",
+              sender: "bot",
+              text: "Hello! I am Argus, your personal AI Legal Assistant. Upload a document to start a conversation.",
+            },
+          ];
+    } catch {
+      return [
+        {
+          id: "welcome",
+          sender: "bot",
+          text: "Hello! I am Argus, your personal AI Legal Assistant. Upload a document to start a conversation.",
+        },
+      ];
+    }
+  });
+
+  const [chatId, setChatId] = useState(
+    () => localStorage.getItem(storageChatIdKey) || null
+  );
+  const [isSending, setIsSending] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     // scroll to bottom on new messages
@@ -153,7 +169,13 @@ export function FloatingChatWidget({
     }
   }, [messages, isVisible]);
 
-  if (!isVisible) return null;
+  useEffect(() => {
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(messages));
+    } catch {}
+  }, [messages, storageKey]);
+
+  // if (!isVisible) return null;
 
   // useEffect(() => {
   //   // optional debug
@@ -166,30 +188,85 @@ export function FloatingChatWidget({
   });
 
   const pushUserMessage = (text) => {
-    setMessages((prev) => [...prev, { id: Date.now(), sender: "user", text }]);
+    const userMsg = { id: Date.now().toString(), sender: "user", text };
+    setMessages((prev) => [...prev, userMsg]);
+    return userMsg;
   };
 
   const pushBotMessage = (text) => {
-    setMessages((prev) => [
-      ...prev,
-      { id: Date.now() + 1, sender: "bot", text },
-    ]);
+    const botMsg = { id: (Date.now() + 1).toString(), sender: "bot", text };
+    setMessages((prev) => [...prev, botMsg]);
+    return botMsg;
   };
 
-  const handleSend = () => {
+  const handleSend = async () => {
     const value = inputRef.current?.value?.trim();
-    if (!value) return;
-    // add user message
+    if (!value || isSending) return;
+
+    // push user message to UI
     pushUserMessage(value);
-    // clear input
     if (inputRef.current) inputRef.current.value = "";
 
-    // simulate bot reply (replace with real API call)
-    setTimeout(() => {
-      pushBotMessage(
-        "Thanks — I got that. I'm analyzing and will reply shortly (demo reply)."
-      );
-    }, 600);
+    // optimistic bot placeholder (optional)
+    const placeholder = pushBotMessage("Analyzing…");
+
+    setIsSending(true);
+    setError(null);
+
+    try {
+      let res;
+      if (docId) {
+        res = await sendDocChat(docId, value); // { reply, chatId }
+      } else {
+        res = await sendGeneralChat(value);
+      }
+
+      const reply = res?.reply || "No reply from server.";
+      // remove placeholder and append real reply:
+      setMessages((prev) => {
+        // remove the last placeholder if it's ours (match by text "Analyzing…" and sender bot)
+        const withoutPlaceholder =
+          prev.length > 0 &&
+          prev[prev.length - 1].sender === "bot" &&
+          prev[prev.length - 1].text === "Analyzing…"
+            ? prev.slice(0, -1)
+            : prev;
+        return [
+          ...withoutPlaceholder,
+          { id: Date.now().toString(), sender: "bot", text: reply },
+        ];
+      });
+
+      // persist chatId if returned
+      if (res?.chatId) {
+        setChatId(res.chatId);
+        try {
+          localStorage.setItem(storageChatIdKey, res.chatId);
+        } catch {}
+      }
+    } catch (err) {
+      console.error("Chat send failed:", err);
+      setError(err?.message || "Failed to send message");
+      // replace placeholder with an error message
+      setMessages((prev) => {
+        const withoutPlaceholder =
+          prev.length > 0 &&
+          prev[prev.length - 1].sender === "bot" &&
+          prev[prev.length - 1].text === "Analyzing…"
+            ? prev.slice(0, -1)
+            : prev;
+        return [
+          ...withoutPlaceholder,
+          {
+            id: Date.now().toString(),
+            sender: "bot",
+            text: "Sorry — couldn't reach server.",
+          },
+        ];
+      });
+    } finally {
+      setIsSending(false);
+    }
   };
 
   return (
@@ -214,6 +291,9 @@ export function FloatingChatWidget({
               {/* <EyeIcon className="w-6 h-6 text-purple-400" /> */}
               <img src={robot} alt="Argus Logo" className="h-5 w-5" />
               <h2 className="text-xl font-semibold text-white">Argus</h2>
+              <span className="text-xs text-neutral-400">
+                {docId ? "Document chat" : "General chat"}
+              </span>
               {/* <span className="text-xs text-neutral-400">
                 Your AI Legal Assistant
               </span> */}
@@ -237,6 +317,14 @@ export function FloatingChatWidget({
               {messages.map((m) => (
                 <MessageBubble key={m.id} message={m} />
               ))}
+              {isSending && (
+                <div className="text-xs text-neutral-400">
+                  Waiting for reply...
+                </div>
+              )}
+              {error && (
+                <div className="text-xs text-red-400">Error: {error}</div>
+              )}
             </div>
           </div>
 
