@@ -6,6 +6,7 @@ import { useDropzone } from "react-dropzone";
 import { GlowEffectButton } from "@/components/GlowEffectButton";
 import { MultiStepLoader as Loader } from "@/components/ui/multi-step-loader.jsx";
 import { useNavigate } from "react-router-dom";
+import { uploadDocumentFile } from "@/services/docService";
 
 const mainVariant = {
   initial: {
@@ -60,6 +61,9 @@ export const FileUpload = ({ onChange }) => {
   const [files, setFiles] = useState([]);
   const fileInputRef = useRef(null);
   const [loading, setLoading] = useState(false); // <--- ADDED STATE
+  const [uploadProgress, setUploadProgress] = useState({}); // { index: percent }
+  const [error, setError] = useState(null);
+  const controllerRef = useRef(null);
 
   const navigate = useNavigate();
 
@@ -70,20 +74,49 @@ export const FileUpload = ({ onChange }) => {
 
   // --- ADDED: Sequence Handler (Modified from previous steps) ---
   // --- MODIFIED: Sequence Handler with navigation ---
-  const handleProcessFiles = (e) => {
-    if (e && e.stopPropagation) {
-      e.stopPropagation();
-    }
+  // new handleProcessFiles: uploads all files sequentially, navigates to first doc
+  const handleProcessFiles = async (e) => {
+    if (e && e.stopPropagation) e.stopPropagation();
     if (files.length === 0) return;
 
     setLoading(true);
+    setError(null); // add state: const [error, setError] = useState(null);
+    const controller = new AbortController(); // optional: cancellation
+    controllerRef.current = controller;
+    const progressMap = {}; // local progress store
 
-    setTimeout(() => {
-      setLoading(false); // --- NAVIGATION LOGIC --- // NOTE: You should replace 'file123abc' with a real, generated document ID later.
-      const documentId = "file123abc";
-      navigate(`/clarity/${documentId}`); // <--- NAVIGATES TO THE TARGET ROUTE // --- END NAVIGATION LOGIC --- // Clear files state after successful navigation
+    try {
+      let firstDocId = null;
+
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+
+        // set initial progress
+        setUploadProgress((prev) => ({ ...(prev || {}), [i]: 0 })); // add state: uploadProgress
+
+        const uploaded = await uploadDocumentFile(file, {
+          onProgress: (p) => {
+            progressMap[i] = p;
+            setUploadProgress({ ...progressMap });
+          },
+          signal: controller.signal,
+        });
+
+        // save first returned doc id to navigate
+        if (!firstDocId && uploaded && uploaded._id) firstDocId = uploaded._id;
+
+        // optionally show per-file success UI here
+      }
+
+      setLoading(false);
       setFiles([]);
-    }, loadingStates.length * 2000 + 500);
+      controllerRef.current = null;
+      if (firstDocId) navigate(`/clarity/${firstDocId}`);
+    } catch (err) {
+      console.error("Upload failed:", err);
+      setError(err?.message || "Upload failed");
+      setLoading(false);
+    }
   };
 
   const handleFileChange = (newFiles) => {
@@ -183,20 +216,43 @@ export const FileUpload = ({ onChange }) => {
                         {new Date(file.lastModified).toLocaleDateString()}
                       </motion.p>
                     </div>
+                    {uploadProgress[idx] !== undefined && (
+                      <div className="w-full mt-2">
+                        <div className="h-2 bg-neutral-800 rounded overflow-hidden">
+                          <div
+                            style={{ width: `${uploadProgress[idx] ?? 0}%` }}
+                            className="h-full bg-indigo-600 transition-all"
+                          />
+                        </div>
+                        <div className="text-xs text-neutral-400 mt-1">
+                          {uploadProgress[idx] ?? 0}% uploaded
+                        </div>
+                      </div>
+                    )}
                   </motion.div>
                 ))}
+                {error && (
+                  <div className="text-sm text-red-400 mt-4">{error}</div>
+                )}
                 <Loader // <--- LOADER RENDERED HERE
                   loadingStates={loadingStates}
                   loading={loading}
                   duration={2000}
                 />
                 <div className="flex justify-center mt-6 sticky bottom-6 z-50">
-                  <GlowEffectButton onClick={handleProcessFiles} />
+                  <GlowEffectButton
+                    onClick={handleProcessFiles}
+                    disabled={loading}
+                  />
                 </div>
-                {loading && ( // <--- CLOSE BUTTON RENDERED HERE
+                {loading && (
                   <button
                     className="fixed top-4 right-4 text-black dark:text-white z-[120]"
-                    onClick={() => setLoading(false)}
+                    onClick={() => {
+                      controllerRef.current?.abort?.();
+                      setLoading(false);
+                      setError("Upload cancelled");
+                    }}
                   >
                     <IconSquareRoundedX className="h-10 w-10" />
                   </button>
