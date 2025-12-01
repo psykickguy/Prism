@@ -9,6 +9,7 @@ import { MultiStepLoader as Loader } from "@/components/ui/multi-step-loader.jsx
 import { IconSquareRoundedX } from "@tabler/icons-react";
 // import { C } from "@clerk/clerk-react/dist/useAuth-BX_k9NPL";
 import { ClarityButton } from "@/components/ClarityButton"; // --- MODIFIED --- (Added import)
+import { fetchDocuments } from "@/services/docService";
 
 const loadingStates = [
   {
@@ -27,9 +28,14 @@ const loadingStates = [
 
 export function VaultList() {
   const [active, setActive] = useState(null);
+
   const id = useId();
   const ref = useRef(null);
   const navigate = useNavigate(); // <-- ADD THIS LINE
+
+  const [documents, setDocuments] = useState([]);
+  const [loadingDocs, setLoadingDocs] = useState(false);
+  const [docsError, setDocsError] = useState(null);
 
   // const [loading, setLoading] = useState(false);
 
@@ -49,6 +55,33 @@ export function VaultList() {
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [active]);
+
+  // Fetch documents once on mount
+  useEffect(() => {
+    let mounted = true;
+    setLoadingDocs(true);
+    setDocsError(null);
+
+    fetchDocuments()
+      .then((res) => {
+        if (!mounted) return;
+        // Expect res to be an array of Document objects from backend
+        setDocuments(Array.isArray(res) ? res : []);
+      })
+      .catch((err) => {
+        console.error("Failed to fetch documents:", err);
+        if (!mounted) return;
+        setDocsError(err?.message || "Failed to load documents");
+        setDocuments([]);
+      })
+      .finally(() => {
+        if (mounted) setLoadingDocs(false);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   useOutsideClick(ref, () => setActive(null));
 
@@ -74,11 +107,35 @@ export function VaultList() {
   const handleProcessFiles = (e) => {
     if (e && e.stopPropagation) e.stopPropagation();
     const documentId = active?.id;
-    setActive(null); // trigger layout exit
-    // small delay so the card/back animation starts before navigation
+    setActive(null);
     setTimeout(() => {
       if (documentId) navigate(`/clarity/${documentId}`);
     }, 50);
+  };
+
+  // Helper: Build a UI card object from a backend document (keeps original shape)
+  const docToCard = (doc) => {
+    // doc fields: _id, title, thumbnailUrl, extractedText, fileUrl, createdAt, metadata
+    return {
+      id: doc._id,
+      title: doc.title || doc.fileUrl?.split("/").pop() || "Untitled Document",
+      description:
+        (doc.extractedText && doc.extractedText.slice(0, 160).trim()) ||
+        "No summary available",
+      src: doc.thumbnailUrl || "/placeholder.jpg",
+      ctaText: "Open",
+      content: () => (
+        <div className="prose prose-invert max-w-full">
+          {doc.extractedText ? (
+            <pre className="whitespace-pre-wrap text-sm">
+              {doc.extractedText}
+            </pre>
+          ) : (
+            <p>No extracted text available.</p>
+          )}
+        </div>
+      ),
+    };
   };
 
   return (
@@ -166,12 +223,12 @@ export function VaultList() {
                     >
                       {active.title}
                     </motion.h3>
-                    <motion.p
+                    {/* <motion.p
                       layoutId={`description-${active.description}-${id}`}
                       className="text-neutral-400 text-base"
                     >
-                      {active.description}
-                    </motion.p>
+                      {active.description || "No summary available"}
+                    </motion.p> */}
                   </div>
 
                   {/* --- MODIFIED --- (Replaced the green <motion.a> button) */}
@@ -213,41 +270,61 @@ export function VaultList() {
           </div>
         ) : null}
       </AnimatePresence>
+      <div className="max-w-5xl mx-auto w-full pt-6">
+        {loadingDocs && (
+          <div className="mb-4">
+            <Loader loadingStates={["Loading documents..."]} loading={true} />
+          </div>
+        )}
+        {docsError && (
+          <div className="text-red-400 text-sm mb-4">{docsError}</div>
+        )}
+      </div>
       <ul className="max-w-5xl mx-auto w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 items-start gap-4 pt-20 mt-10">
-        {cards.map((card, index) => (
-          <motion.div
-            layoutId={`card-${card.title}-${id}`}
-            key={card.title}
-            onClick={() => setActive(card)}
-            className="p-4 flex flex-col hover:bg-neutral-800/60 rounded-xl cursor-pointer transition-colors"
-          >
-            <div className="flex gap-4 flex-col   w-full">
-              <motion.div layoutId={`image-${card.title}-${id}`}>
-                <img
-                  width={100}
-                  height={100}
-                  src={card.src}
-                  alt={card.title}
-                  className="h-60 w-full   rounded-lg object-cover object-top"
-                />
+        {/* First show fetched documents (if any) */}
+        {documents.length > 0 &&
+          documents.map((doc) => {
+            const card = docToCard(doc);
+            return (
+              <motion.div
+                layoutId={`card-${card.title}-${id}`}
+                key={card.id}
+                onClick={() => setActive(card)}
+                className="p-4 flex flex-col hover:bg-neutral-800/60 rounded-xl cursor-pointer transition-colors"
+              >
+                <div className="flex gap-4 flex-col w-full">
+                  <motion.div layoutId={`image-${card.title}-${id}`}>
+                    <img
+                      width={100}
+                      height={100}
+                      src={card.src}
+                      alt={card.title}
+                      onError={(e) => {
+                        console.warn("Thumbnail failed:", card.src);
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = "/placeholder.jpg";
+                      }}
+                      className="h-60 w-full rounded-lg object-cover object-top"
+                    />
+                  </motion.div>
+                  <div className="flex justify-center items-center flex-col">
+                    <motion.h3
+                      layoutId={`title-${card.title}-${id}`}
+                      className="font-medium text-neutral-200 text-center md:text-left text-base"
+                    >
+                      {card.title}
+                    </motion.h3>
+                    <motion.p
+                      layoutId={`description-${card.description}-${id}`}
+                      className="text-neutral-400 text-center md:text-left text-base"
+                    >
+                      {card.description}
+                    </motion.p>
+                  </div>
+                </div>
               </motion.div>
-              <div className="flex justify-center items-center flex-col">
-                <motion.h3
-                  layoutId={`title-${card.title}-${id}`}
-                  className="font-medium text-neutral-200 text-center md:text-left text-base"
-                >
-                  {card.title}
-                </motion.h3>
-                <motion.p
-                  layoutId={`description-${card.description}-${id}`}
-                  className="text-neutral-400 text-center md:text-left text-base"
-                >
-                  {card.description}
-                </motion.p>
-              </div>
-            </div>
-          </motion.div>
-        ))}
+            );
+          })}
       </ul>
     </>
   );
@@ -285,101 +362,3 @@ export const CloseIcon = () => {
     </motion.svg>
   );
 };
-
-// ... (cards array remains unchanged) ...
-const cards = [
-  {
-    id: "file-id-123", // <-- ADD THIS
-    description: "Lana Del Rey",
-    title: "Summertime Sadness",
-    src: "https://assets.aceternity.com/demos/lana-del-rey.jpeg",
-    ctaText: "Visit",
-    ctaLink: "https://ui.aceternity.com/templates",
-    content: () => {
-      return (
-        <p>
-          Lana Del Rey, an iconic American singer-songwriter, is celebrated for
-          her melancholic and cinematic music style. Born Elizabeth Woolridge
-          Grant in New York City, she has captivated audiences worldwide with
-          her haunting voice and introspective lyrics. <br /> <br />
-          Her songs often explore themes of tragic romance, glamour, and
-          melancholia, drawing inspiration from both contemporary and vintage
-          pop culture. With a career that has seen numerous critically acclaimed
-          albums, Lana Del Rey has established herself as a unique and
-          influential figure in the music industry, earning a dedicated fan base
-          and numerous accolades.
-        </p>
-      );
-    },
-  },
-  {
-    id: "file-id-456", // <-- ADD THIS
-    description: "Babbu Maan",
-    title: "Mitran Di Chhatri",
-    src: "https://assets.aceternity.com/demos/babbu-maan.jpeg",
-    ctaText: "Visit",
-    ctaLink: "https://ui.aceternity.com/templates",
-    content: () => {
-      return (
-        <p>
-          Babu Maan, a legendary Punjabi singer, is renowned for his soulful
-          voice and profound lyrics that resonate deeply with his audience. Born
-          in the village of Khant Maanpur in Punjab, India, he has become a
-          cultural icon in the Punjabi music industry. <br /> <br />
-          His songs often reflect the struggles and triumphs of everyday life,
-          capturing the essence of Punjabi culture and traditions. With a career
-          spanning over two decades, Babu Maan has released numerous hit albums
-          and singles that have garnered him a massive fan following both in
-          India and abroad.
-        </p>
-      );
-    },
-  },
-
-  {
-    id: "file-id-789", // <-- ADD THIS
-    description: "Metallica",
-    title: "For Whom The Bell Tolls",
-    src: "https://assets.aceternity.com/demos/metallica.jpeg",
-    ctaText: "Visit",
-    ctaLink: "https://ui.aceternity.com/templates",
-    content: () => {
-      return (
-        <p>
-          Metallica, an iconic American heavy metal band, is renowned for their
-          powerful sound and intense performances that resonate deeply with
-          their audience. Formed in Los Angeles, California, they have become a
-          cultural icon in the heavy metal music industry. <br /> <br />
-          Their songs often reflect themes of aggression, social issues, and
-          personal struggles, capturing the essence of the heavy metal genre.
-          With a career spanning over four decades, Metallica has released
-          numerous hit albums and singles that have garnered them a massive fan
-          following both in the United States and abroad.
-        </p>
-      );
-    },
-  },
-  {
-    id: "file-id-123", // <-- ADD THIS
-    description: "Lord Himesh",
-    title: "Aap Ka Suroor",
-    src: "https://assets.aceternity.com/demos/aap-ka-suroor.jpeg",
-    ctaText: "Visit",
-    ctaLink: "https://ui.aceternity.com/templates",
-    content: () => {
-      return (
-        <p>
-          Himesh Reshammiya, a renowned Indian music composer, singer, and
-          actor, is celebrated for his distinctive voice and innovative
-          compositions. Born in Mumbai, India, he has become a prominent figure
-          in the Bollywood music industry. <br /> <br />
-          His songs often feature a blend of contemporary and traditional Indian
-          music, capturing the essence of modern Bollywood soundtracks. With a
-          career spanning over two decades, Himesh Reshammiya has released
-          numerous hit albums and singles that have garnered him a massive fan T
-          following both in India and abroad.
-        </p>
-      );
-    },
-  },
-];

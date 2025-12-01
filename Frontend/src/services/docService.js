@@ -26,3 +26,8 @@ export async function uploadDocumentFile(file, { onProgress, signal } = {}) {
   const { data } = await api.post("/docs/upload", form, config);
   return data;
 }
+
+export const fetchDocuments = async () => {
+  const res = await api.get("/docs");
+  return res.data;
+};
