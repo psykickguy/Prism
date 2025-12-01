@@ -8,7 +8,7 @@ const chatGemini = async (messages) => {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "provider-2/gpt-4.1-mini",
+      model: "provider-5/gpt-4o-mini",
       messages: messages.map((m) => ({
         role: m.role,
         content: m.content,

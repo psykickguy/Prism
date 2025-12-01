@@ -9,7 +9,7 @@ const callGemini = async (systemPrompt, userMessage) => {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "provider-2/gpt-4.1-mini",
+      model: "provider-5/gpt-4o-mini",
       // model: "llama-3.1-8b-instant",
       messages: [
         {
