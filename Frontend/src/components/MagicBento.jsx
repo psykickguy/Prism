@@ -17,6 +17,8 @@ import { useOutsideClick } from "@/hooks/use-outside-click";
 import { gsap } from "gsap";
 import { useNavigate, useParams } from "react-router-dom";
 
+import { fetchAnalysesForDocument } from "@/services/analysisService";
+
 const DEFAULT_PARTICLE_COUNT = 12;
 const DEFAULT_SPOTLIGHT_RADIUS = 300;
 const DEFAULT_GLOW_COLOR = "132, 0, 255";
@@ -74,6 +76,88 @@ const cardData = [
 ];
 
 // --- ADDED: Content for the modal ---
+
+// ------------------ getContentForSlug( slug, analyses ) ------------------
+const getContentForSlug = (slug, analyses) => {
+  if (!analyses) return null;
+
+  switch (slug) {
+    case "summary": {
+      const summary = analyses["summary"]?.[0];
+      const text = summary?.summary || summary?.output || summary?.raw || "";
+      return (
+        <div className="p-6">
+          <h4 className="text-lg font-semibold mb-2">Summary</h4>
+          <pre className="text-sm text-neutral-300 whitespace-pre-wrap">
+            {text || "No summary available."}
+          </pre>
+        </div>
+      );
+    }
+
+    case "recommendations": {
+      const rec =
+        analyses["recommendation"]?.[0] || analyses["recommendation"]?.[0];
+      let items = [];
+      if (rec?.recommendations) {
+        items = Array.isArray(rec.recommendations)
+          ? rec.recommendations.map((r) =>
+              typeof r === "string" ? r : r.point || r
+            )
+          : [];
+      } else if (rec?.recommendations === undefined && rec?.output) {
+        items = String(rec.output)
+          .split("\n")
+          .map((l) => l.trim())
+          .filter(Boolean);
+      }
+      return (
+        <div className="p-6">
+          <h4 className="text-lg font-semibold mb-2">Recommendations</h4>
+          {items.length ? (
+            <ul className="list-disc pl-5 text-sm text-neutral-300 space-y-1">
+              {items.map((it, i) => (
+                <li key={i}>{it}</li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-neutral-400">
+              No recommendations available.
+            </p>
+          )}
+        </div>
+      );
+    }
+
+    case "highlight-risks": {
+      const risks =
+        analyses["highlight_risk"]?.[0] || analyses["highlight-risk"]?.[0];
+      const clauses = risks?.clauses || [];
+      return (
+        <div className="p-6">
+          <h4 className="text-lg font-semibold mb-2">Highlighted Risks</h4>
+          {clauses.length ? (
+            <ul className="list-disc pl-5 text-sm text-neutral-300 space-y-1">
+              {clauses.map((c, i) => (
+                <li key={i}>
+                  <strong className="capitalize">{c.riskLevel || "low"}</strong>{" "}
+                  — {c.clause || c}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-neutral-400">No risks identified.</p>
+          )}
+        </div>
+      );
+    }
+
+    default:
+      return null;
+  }
+};
+// ------------------ END getContentForSlug ---------------------------------
+
 // (I copied this from your 'ClarityDetail.jsx' code)
 const DummyContent = () => {
   return (
@@ -601,6 +685,47 @@ const MagicBento = ({
   // --- END ADD ---
 
   // --- ADDED --- (State logic from ExpandableCardDemo)
+
+  // ------------------ ADD: server analyses state & fetch ------------------
+  const [serverAnalyses, setServerAnalyses] = useState(null);
+  const [analysesLoading, setAnalysesLoading] = useState(false);
+  const [analysesError, setAnalysesError] = useState(null);
+
+  // fetch analyses for document when `id` is present
+  useEffect(() => {
+    if (!id) return;
+    let mounted = true;
+    setAnalysesLoading(true);
+    setAnalysesError(null);
+
+    fetchAnalysesForDocument(id)
+      .then((arr) => {
+        if (!mounted) return;
+        // convert to map keyed by type (summary, recommendation, etc.)
+        const map = {};
+        (arr || []).forEach((a) => {
+          if (!a?.type) return;
+          map[a.type] = map[a.type] || [];
+          map[a.type].push(a);
+        });
+        setServerAnalyses(map);
+      })
+      .catch((err) => {
+        console.error("Failed to load analyses:", err);
+        if (!mounted) return;
+        setAnalysesError(err?.message || "Failed to load analyses");
+        setServerAnalyses(null);
+      })
+      .finally(() => {
+        if (mounted) setAnalysesLoading(false);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [id]);
+  // ------------------ END ADD ------------------------------------------------
+
   const [activeCard, setActiveCard] = useState(null); // 'null' or the card object
   const modalRef = useRef(null);
 
@@ -656,7 +781,12 @@ const MagicBento = ({
               {/* You can use a switch statement here if you want */}
               {/* {activeCard.title === "Recommendations" ? <AppleCardsCarouselWrapper /> : <p>Other content</p>} */}
 
-              <AppleCardsCarouselWrapper />
+              {/* Replace <AppleCardsCarouselWrapper /> with this: */}
+              {activeCard
+                ? // if server content exists for this slug, render it, else show the card's own content or original carousel
+                  getContentForSlug(activeCard.slug, serverAnalyses) ||
+                  activeCard.content || <AppleCardsCarouselWrapper />
+                : null}
             </motion.div>
           </div>
         ) : null}
@@ -856,19 +986,19 @@ const MagicBento = ({
 
                       {card.description}
                     </p> */}
-                    {/* --- MODIFIED: Show list for Recommendations, description for others --- */}
-                                       {" "}
-                    {card.slug === "recommendations" ? (
+                    {/* START: server-backed content or static fallback */}
+                    {getContentForSlug(card.slug, serverAnalyses) ? (
+                      <div className="description-fade-container mt-1 text-xs text-neutral-300 line-clamp-3">
+                        {/* render a compact preview from server content */}
+                        {getContentForSlug(card.slug, serverAnalyses)}
+                      </div>
+                    ) : card.slug === "recommendations" ? (
                       <div className="description-fade-container mt-1">
-                                               {" "}
                         <ul className="recommendation-list text-xs leading-5 opacity-90 space-y-2">
-                                                   {" "}
-                          {card.recommendationsList.map((item, i) => (
+                          {card.recommendationsList?.map((item, i) => (
                             <li key={i}>{item}</li>
                           ))}
-                                                 {" "}
                         </ul>
-                                             {" "}
                       </div>
                     ) : (
                       <p
@@ -876,11 +1006,10 @@ const MagicBento = ({
                           textAutoHide ? "text-clamp-2" : ""
                         }`}
                       >
-                                                {card.description}             
-                               {" "}
+                        {card.description}
                       </p>
                     )}
-                                        {/* --- END MODIFICATION --- */}
+                    {/* END: server-backed content or static fallback */}
                   </div>
                 </ParticleCard>
               );
